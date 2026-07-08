@@ -1,2 +1,2 @@
 # voidengine
-trully independent webbrowser
+yet another webbrowser
