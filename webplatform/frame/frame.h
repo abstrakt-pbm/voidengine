@@ -1,6 +1,9 @@
 #pragma once
 
+#include "frame/layouttreebuilder.h"
+#include "frame/styleresolver.h"
 #include "framenavigator.h"
+#include "renderer/framepainter.h"
 
 namespace ve {
 namespace webplatform {
@@ -11,6 +14,8 @@ class Document;
 class DocumentWindow {
 public:
   void InstallDocument(Document *document);
+
+  const Document &Document();
 
 private:
   // in future DocumentWindow will own JSContext
@@ -28,6 +33,10 @@ public:
 private:
   DocumentWindow doc_window_;
   FrameNavigator frame_navigator_;
+
+  FramePainter frame_painter_;
+  StyleResolver style_resolver_;
+  LayoutTreeBuilder layout_tree_builder_;
 };
 
 } // namespace webplatform

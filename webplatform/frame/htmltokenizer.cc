@@ -94,6 +94,10 @@ std::vector<HTMLToken> HTMLTokeniser::Tokenize(std::string_view html) {
       current_state_ =
           ExecuteSelfClosingStartTagState(character, current_html_token);
       break;
+    case TokeniserState::kMarkupDeclOpen:
+      current_state_ =
+          ExecuteMarkupDeclOpenState(character, current_html_token);
+      break;
 
     case TokeniserState::kEOF:
       break;
@@ -509,8 +513,6 @@ HTMLTokeniser::ExecuteEndTagOpenState(std::optional<char> character,
 
   if (IsAsciiAlpha(*character)) {
     token.SetType(HTMLToken::TokenType::kEndTag);
-
-    // Первую букву повторно обработает TagNameState.
     return TokeniserState::kTagName;
   }
 
@@ -520,9 +522,24 @@ HTMLTokeniser::ExecuteEndTagOpenState(std::optional<char> character,
     return TokeniserState::kData;
   }
 
-  // Полная реализация должна перейти в BogusComment.
   return TokeniserState::kBogusComment;
 }
 
+// Нужно переделать источник сырого теста на удобную работу с
+HTMLTokeniser::TokeniserState
+HTMLTokeniser::ExecuteMarkupDeclOpenState(std::optional<char> character,
+                                          HTMLToken &token) {
+  if (!character) {
+    token.SetType(HTMLToken::TokenType::kCharacter);
+    token.AppendCharacter('<');
+    token.AppendCharacter('/');
+    token.SetFinished(true);
+
+    return TokeniserState::kData;
+  }
+  if (*character == ' ') {
+  }
+  return TokeniserState::kData;
+}
 } // namespace webplatform
 } // namespace ve

@@ -1,10 +1,69 @@
 #include "htmltoken.h"
+
+namespace {
+std::string EscapeForDebug(std::string_view value) {
+  std::string result;
+  result.reserve(value.size());
+
+  for (char character : value) {
+    switch (character) {
+    case '\n':
+      result += "\\n";
+      break;
+
+    case '\r':
+      result += "\\r";
+      break;
+
+    case '\t':
+      result += "\\t";
+      break;
+
+    case '\0':
+      result += "\\0";
+      break;
+
+    case '\\':
+      result += "\\\\";
+      break;
+
+    case '"':
+      result += "\\\"";
+      break;
+
+    default:
+      result.push_back(character);
+      break;
+    }
+  }
+
+  return result;
+}
+
+} // namespace
+
 namespace ve {
 namespace webplatform {
 
+[[nodiscard]] constexpr HTMLTag
+HTMLTagFromString(std::string_view name) noexcept {
+  for (const HTMLTagEntry &entry : kHTMLTagEntries) {
+    if (entry.name == name) {
+      return entry.tag;
+    }
+  }
+
+  return HTMLTag::kUnknown;
+}
+
 void HTMLToken::SetType(HTMLToken::TokenType type) { type_ = type; }
 
-void HTMLToken::SetFinished(bool is_finished) { is_finished_ = is_finished; }
+void HTMLToken::SetFinished(bool is_finished) {
+  is_finished_ = is_finished;
+  if (is_finished == true) {
+    tag_ = HTMLTagFromString(name_);
+  }
+}
 void HTMLToken::SetIsSelfClosing(bool is_self_closing) {
   is_self_closing_ = is_self_closing;
 }
@@ -46,45 +105,6 @@ bool HTMLToken::IsUninitialized() const {
   return type_ == TokenType::kUninitialized;
 }
 bool HTMLToken::IsFinished() const { return is_finished_; }
-
-std::string EscapeForDebug(std::string_view value) {
-  std::string result;
-  result.reserve(value.size());
-
-  for (char character : value) {
-    switch (character) {
-    case '\n':
-      result += "\\n";
-      break;
-
-    case '\r':
-      result += "\\r";
-      break;
-
-    case '\t':
-      result += "\\t";
-      break;
-
-    case '\0':
-      result += "\\0";
-      break;
-
-    case '\\':
-      result += "\\\\";
-      break;
-
-    case '"':
-      result += "\\\"";
-      break;
-
-    default:
-      result.push_back(character);
-      break;
-    }
-  }
-
-  return result;
-}
 
 std::string HTMLAttribute::ToString() const {
   return name + "=\"" + EscapeForDebug(value) + "\"";
@@ -143,5 +163,4 @@ std::string HTMLToken::ToString() const {
 }
 
 } // namespace webplatform
-
 } // namespace ve

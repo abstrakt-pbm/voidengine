@@ -67,6 +67,8 @@ private:
                                         HTMLToken &token);
   TokeniserState ExecuteEndTagOpenState(std::optional<char> character,
                                         HTMLToken &token);
+  TokeniserState ExecuteMarkupDeclOpenState(std::optional<char> character,
+                                            HTMLToken &token);
 };
 
 } // namespace webplatform
