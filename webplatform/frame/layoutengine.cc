@@ -1,4 +1,6 @@
 #include "layoutengine.h"
+
+#include "frame/computed_style.h"
 #include "frame/geometrytree.h"
 
 namespace ve {
@@ -6,6 +8,8 @@ namespace webplatform {
 
 GeometryTree LayoutEngine::MakeGeometryTree(const LayoutTree &layout_tree) {
   GeometryTree geometry_tree;
+
+  Layout(layout_tree.root, );
 
   // Пусть есть LayoutBlockBox(контейнер располагает в себе детей)
   // LayoutBlockBox(ребёнок), нужно их расположить
@@ -22,6 +26,14 @@ GeometryTree LayoutEngine::MakeGeometryTree(const LayoutTree &layout_tree) {
   //
 
   return geometry_tree;
+}
+
+// Вычислить геометрию одного элемента в его относительных координатах
+LayoutObject LayoutEngine::Layout(const LayoutElement &layout_element,
+                                  const ComputedStyle &style) {
+  // Получить ограничения от родителя
+  // Какие стили влияют на размер элементов
+  //
 }
 
 void LayoutBox::AppendChild(LayoutObject layout_object) {

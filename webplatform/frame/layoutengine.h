@@ -26,8 +26,6 @@ private:
   float width;
 };
 
-class LayoutRoot : public LayoutObject {};
-
 class LayoutBox : public LayoutObject {
 public:
   // на основе
@@ -44,6 +42,8 @@ private:
 class LayoutEngine {
 public:
   GeometryTree MakeGeometryTree(const LayoutTree &layout_tree);
+  LayoutObject Layout(const LayoutElement &layout_element,
+                      const ComputedStyle &style);
 
 private:
 };
