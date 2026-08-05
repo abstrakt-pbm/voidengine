@@ -1,0 +1,24 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "debug",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build",
+
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+				"CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin"
+			}
+		}
+	],
+
+	"buildPresets": [
+		{
+			"name": "debug",
+			"configurePreset": "debug"
+		}
+	]
+}
+
