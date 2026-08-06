@@ -3,13 +3,8 @@ cmake_minimum_required(VERSION 3.20)
 project(voidengine_webplatform LANGUAGES CXX)
 
 set(VEWP_SRC
-    frame/frame.cc
-    frame/framenavigator.cc
-    frame/document.cc
-    frame/documentparcer.cc
-    frame/resourceloader.cc
-    frame/htmltokenizer.cc
-    frame/htmltoken.cc
+    document/div.cc
+    document/documentpainter.cc
 )
 
 add_library(voidengine_webplatform STATIC
