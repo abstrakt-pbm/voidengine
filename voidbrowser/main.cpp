@@ -4,15 +4,18 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+#include <iostream>
 #include <vector>
 
 // voidbrowser
 int main(int argc, char **argv) {
   ve::webplatform::PainterEngine painter_engine;
 
-  std::vector<ve::webplatform::Div> divs = {
-      ve::webplatform::Div(100, 50, ve::webplatform::Div::Colour::RED),
-      ve::webplatform::Div(100, 50, ve::webplatform::Div::Colour::GREEN)};
+  ve::webplatform::Div root_div(100, 50, ve::webplatform::Div::Colour::RED);
+  ve::webplatform::Div child_div(50, 25, ve::webplatform::Div::Colour::GREEN);
+  root_div.AddChild(&child_div);
+
+  std::vector<ve::webplatform::Div> divs = {root_div};
 
   std::vector<ve::webplatform::FillRectCommand> command_list =
       painter_engine.Paint(divs);
@@ -54,11 +57,13 @@ int main(int argc, char **argv) {
     SDL_RenderClear(renderer);
 
     for (const auto &render_command : command_list) {
+
       SDL_FRect rect{.x = render_command.x,
                      .y = render_command.y,
                      .w = render_command.width,
                      .h = render_command.height};
 
+      std::cout << render_command.g << std::endl;
       SDL_SetRenderDrawColor(renderer, render_command.r, render_command.g,
                              render_command.b, 255);
 

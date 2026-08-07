@@ -9,11 +9,20 @@ PainterEngine::Paint(const std::vector<Div> &div_container) {
   std::vector<FillRectCommand> commands;
 
   for (const auto &div : div_container) {
+
     FillRectCommand command = CalculateRenderCommands(div);
     command.x = 0;
     command.y = cursor_y;
     cursor_y += command.height;
     commands.push_back(command);
+    while (div.child_ != nullptr) {
+      auto div_child = *div.child_;
+      FillRectCommand child_command = CalculateRenderCommands(div_child);
+      child_command.x = command.x;
+      child_command.y = command.y;
+      commands.push_back(child_command);
+      break;
+    }
   }
 
   return commands;
