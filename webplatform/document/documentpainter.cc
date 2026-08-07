@@ -12,6 +12,10 @@ FillRectCommand CalculateRenderCommands(const Div &div) {
     render_command.r = 255;
     render_command.g = 0;
     render_command.b = 0;
+  } else if (div.colour_ == Div::Colour::GREEN) {
+    render_command.r = 0;
+    render_command.g = 255;
+    render_command.b = 0;
   }
   return render_command;
 }
