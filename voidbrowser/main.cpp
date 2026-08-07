@@ -5,6 +5,7 @@
 #include <SDL3/SDL_main.h>
 
 #include <iostream>
+#include <memory>
 #include <vector>
 
 // voidbrowser
@@ -12,10 +13,19 @@ int main(int argc, char **argv) {
   ve::webplatform::PainterEngine painter_engine;
 
   ve::webplatform::Div root_div(100, 50, ve::webplatform::Div::Colour::RED);
-  ve::webplatform::Div child_div(50, 25, ve::webplatform::Div::Colour::GREEN);
-  root_div.AddChild(&child_div);
 
-  std::vector<ve::webplatform::Div> divs = {root_div};
+  root_div.AddChild(std::make_unique<ve::webplatform::Div>(
+      30, 20, ve::webplatform::Div::Colour::GREEN));
+
+  auto child_2 = std::make_unique<ve::webplatform::Div>(
+      30, 20, ve::webplatform::Div::Colour::GREEN);
+
+  child_2->AddChild(std::make_unique<ve::webplatform::Div>(
+      15, 10, ve::webplatform::Div::Colour::GREEN));
+  root_div.AddChild(std::move(child_2));
+
+  std::vector<ve::webplatform::Div> divs;
+  divs.push_back(std::move(root_div));
 
   std::vector<ve::webplatform::FillRectCommand> command_list =
       painter_engine.Paint(divs);

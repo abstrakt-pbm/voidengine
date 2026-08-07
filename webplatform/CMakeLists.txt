@@ -5,6 +5,7 @@ project(voidengine_webplatform LANGUAGES CXX)
 set(VEWP_SRC
     document/div.cc
     document/documentpainter.cc
+    document/physicalfragment.cc
 )
 
 add_library(voidengine_webplatform STATIC

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "div.h"
+#include "document/physicalfragment.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace ve {
@@ -20,7 +22,12 @@ struct FillRectCommand {
 
 class PainterEngine {
 public:
-  std::vector<FillRectCommand> Paint(const std::vector<Div> &div_container);
+  std::vector<FillRectCommand> Paint(std::vector<Div> &divs);
+
+  std::unique_ptr<PhysicalFragment>
+  CalculateDocumentGeometry(std::vector<Div> &divs);
+
+  std::unique_ptr<PhysicalFragment> CalculateElementGeometry(Div *div);
 
 private:
   FillRectCommand CalculateRenderCommands(const Div &div);
