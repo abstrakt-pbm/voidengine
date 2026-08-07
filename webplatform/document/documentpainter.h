@@ -18,5 +18,15 @@ struct FillRectCommand {
 
 FillRectCommand CalculateRenderCommands(const Div &div);
 
+class LayoutEngine {
+public:
+  FillRectCommand Layout(const Div &div);
+
+private:
+  FillRectCommand CalculateRenderCommands(const Div &div);
+
+  float cursor_y = 0.0f;
+};
+
 } // namespace webplatform
 } // namespace ve

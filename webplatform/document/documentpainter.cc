@@ -2,10 +2,17 @@
 
 namespace ve {
 namespace webplatform {
-FillRectCommand CalculateRenderCommands(const Div &div) {
+
+FillRectCommand LayoutEngine::Layout(const Div &div) {
+  FillRectCommand command = CalculateRenderCommands(div);
+  command.x = 0;
+  command.y = cursor_y;
+  cursor_y += command.height;
+  return command;
+}
+
+FillRectCommand LayoutEngine::CalculateRenderCommands(const Div &div) {
   FillRectCommand render_command;
-  render_command.x = div.x_;
-  render_command.y = div.y_;
   render_command.width = div.width_;
   render_command.height = div.height_;
   if (div.colour_ == Div::Colour::RED) {
@@ -19,5 +26,6 @@ FillRectCommand CalculateRenderCommands(const Div &div) {
   }
   return render_command;
 }
+
 } // namespace webplatform
 } // namespace ve

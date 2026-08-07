@@ -8,18 +8,15 @@
 
 // voidbrowser
 int main(int argc, char **argv) {
+  ve::webplatform::LayoutEngine layout_engine;
   std::vector<ve::webplatform::FillRectCommand> command_list;
 
-  float current_cursor_y = 0.0f;
-  ve::webplatform::Div div_red(0, current_cursor_y, 100, 50,
-                               ve::webplatform::Div::Colour::RED);
-  current_cursor_y += div_red.height_;
+  ve::webplatform::Div div_red(100, 50, ve::webplatform::Div::Colour::RED);
 
-  ve::webplatform::Div div_green(0, current_cursor_y, 100, 50,
-                                 ve::webplatform::Div::Colour::GREEN);
-  current_cursor_y += div_green.height_;
-  command_list.push_back(ve::webplatform::CalculateRenderCommands(div_red));
-  command_list.push_back(ve::webplatform::CalculateRenderCommands(div_green));
+  ve::webplatform::Div div_green(100, 50, ve::webplatform::Div::Colour::GREEN);
+
+  command_list.push_back(layout_engine.Layout(div_red));
+  command_list.push_back(layout_engine.Layout(div_green));
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("SDL_Init failed: %s", SDL_GetError());
@@ -57,7 +54,7 @@ int main(int argc, char **argv) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    for (auto render_command : command_list) {
+    for (const auto &render_command : command_list) {
       SDL_FRect rect{.x = render_command.x,
                      .y = render_command.y,
                      .w = render_command.width,
