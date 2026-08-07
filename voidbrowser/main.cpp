@@ -8,15 +8,14 @@
 
 // voidbrowser
 int main(int argc, char **argv) {
-  ve::webplatform::LayoutEngine layout_engine;
-  std::vector<ve::webplatform::FillRectCommand> command_list;
+  ve::webplatform::PainterEngine painter_engine;
 
-  ve::webplatform::Div div_red(100, 50, ve::webplatform::Div::Colour::RED);
+  std::vector<ve::webplatform::Div> divs = {
+      ve::webplatform::Div(100, 50, ve::webplatform::Div::Colour::RED),
+      ve::webplatform::Div(100, 50, ve::webplatform::Div::Colour::GREEN)};
 
-  ve::webplatform::Div div_green(100, 50, ve::webplatform::Div::Colour::GREEN);
-
-  command_list.push_back(layout_engine.Layout(div_red));
-  command_list.push_back(layout_engine.Layout(div_green));
+  std::vector<ve::webplatform::FillRectCommand> command_list =
+      painter_engine.Paint(divs);
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("SDL_Init failed: %s", SDL_GetError());

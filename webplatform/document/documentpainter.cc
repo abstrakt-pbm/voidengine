@@ -3,15 +3,23 @@
 namespace ve {
 namespace webplatform {
 
-FillRectCommand LayoutEngine::Layout(const Div &div) {
-  FillRectCommand command = CalculateRenderCommands(div);
-  command.x = 0;
-  command.y = cursor_y;
-  cursor_y += command.height;
-  return command;
+std::vector<FillRectCommand>
+PainterEngine::Paint(const std::vector<Div> &div_container) {
+  float cursor_y = 0.0f;
+  std::vector<FillRectCommand> commands;
+
+  for (const auto &div : div_container) {
+    FillRectCommand command = CalculateRenderCommands(div);
+    command.x = 0;
+    command.y = cursor_y;
+    cursor_y += command.height;
+    commands.push_back(command);
+  }
+
+  return commands;
 }
 
-FillRectCommand LayoutEngine::CalculateRenderCommands(const Div &div) {
+FillRectCommand PainterEngine::CalculateRenderCommands(const Div &div) {
   FillRectCommand render_command;
   render_command.width = div.width_;
   render_command.height = div.height_;

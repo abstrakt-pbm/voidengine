@@ -2,6 +2,8 @@
 
 #include "div.h"
 
+#include <vector>
+
 namespace ve {
 namespace webplatform {
 
@@ -16,16 +18,12 @@ struct FillRectCommand {
   int b;
 };
 
-FillRectCommand CalculateRenderCommands(const Div &div);
-
-class LayoutEngine {
+class PainterEngine {
 public:
-  FillRectCommand Layout(const Div &div);
+  std::vector<FillRectCommand> Paint(const std::vector<Div> &div_container);
 
 private:
   FillRectCommand CalculateRenderCommands(const Div &div);
-
-  float cursor_y = 0.0f;
 };
 
 } // namespace webplatform
