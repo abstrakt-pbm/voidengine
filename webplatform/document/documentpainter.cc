@@ -107,6 +107,7 @@ PainterEngine::PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
   float cursor_y = offset_y + fragment->y_;
 
   const Div &div = *fragment->owner_;
+  Style div_style = div.GetStyle();
   if (fragment->owner_) {
     FillRectCommand fragment_comand = CalculateRenderCommands(div);
     fragment_comand.x = cursor_x;
@@ -116,10 +117,8 @@ PainterEngine::PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
 
   for (size_t i = 0; i < fragment->child_fragments_.size(); ++i) {
     auto child_fragment = fragment->child_fragments_[i].get();
-    float child_cursor_x =
-        cursor_x + child_fragment->owner_->GetStyle().GetPadding().paddig_left;
-    float child_cursor_y =
-        cursor_y + child_fragment->owner_->GetStyle().GetPadding().paddig_top;
+    float child_cursor_x = cursor_x + div_style.GetPadding().paddig_left;
+    float child_cursor_y = cursor_y + div_style.GetPadding().paddig_top;
     std::cout << "top paddign: "
               << child_fragment->owner_->GetStyle().GetPadding().paddig_top
               << std::endl;
