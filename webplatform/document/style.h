@@ -29,6 +29,9 @@ public:
 
   float width_;
   float height_;
+
+  float border_width = 0.0f;
+
   Colour colour_;
   Padding padding_;
 };

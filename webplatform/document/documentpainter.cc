@@ -7,10 +7,10 @@
 namespace ve {
 namespace webplatform {
 
-std::vector<FillRectCommand> PainterEngine::Paint(std::vector<Div> &divs) {
+DisplayList PainterEngine::Paint(std::vector<Div> &divs) {
   float cursor_y = 0.0f;
   float cursor_x = 0.0f;
-  std::vector<FillRectCommand> commands;
+  DisplayList commands;
 
   auto document_geometry = CalculateDocumentGeometry(divs);
   for (size_t i = 0; i < document_geometry->child_fragments_.size(); ++i) {
@@ -27,11 +27,19 @@ std::vector<FillRectCommand> PainterEngine::Paint(std::vector<Div> &divs) {
   return commands;
 }
 
-FillRectCommand PainterEngine::CalculateRenderCommands(const Div &div) {
+DisplayList PainterEngine::CalculateRenderCommands(const Div &div) {
   FillRectCommand render_command;
+  DrawBorderCommand border_command;
 
-  render_command.width = div.GetStyle().Width();
-  render_command.height = div.GetStyle().Height();
+  border_command.width = div.GetStyle().Width();
+  border_command.height = div.GetStyle().Height();
+  border_command.border_width = div.GetStyle().border_width;
+
+  render_command.width =
+      div.GetStyle().Width() - 2 * div.GetStyle().border_width;
+  render_command.height =
+      div.GetStyle().Height() - 2 * div.GetStyle().border_width;
+
   if (div.GetStyle().GetColour() == Style::Colour::RED) {
     render_command.r = 255;
     render_command.g = 0;
@@ -45,7 +53,7 @@ FillRectCommand PainterEngine::CalculateRenderCommands(const Div &div) {
     render_command.g = 0;
     render_command.b = 255;
   }
-  return render_command;
+  return DisplayList{border_command, render_command};
 }
 
 std::unique_ptr<PhysicalFragment>
@@ -95,36 +103,51 @@ PainterEngine::CalculateElementGeometry(Div *div) {
   return fragment;
 };
 
-std::vector<FillRectCommand>
-PainterEngine::PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
-                           float offset_y) {
+DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
+                                       float offset_x, float offset_y) {
   if (fragment == nullptr) {
-    return std::vector<FillRectCommand>();
+    return DisplayList();
   }
 
-  std::vector<FillRectCommand> commands;
+  DisplayList commands;
   float cursor_x = offset_x + fragment->x_;
   float cursor_y = offset_y + fragment->y_;
 
   const Div &div = *fragment->owner_;
   Style div_style = div.GetStyle();
   if (fragment->owner_) {
-    FillRectCommand fragment_comand = CalculateRenderCommands(div);
-    fragment_comand.x = cursor_x;
-    fragment_comand.y = cursor_y;
-    commands.push_back(fragment_comand);
+    // комманда отрисовки рамки
+    // потом закрасить рект
+
+    DisplayList fragment_comands = CalculateRenderCommands(div);
+    for (auto &render_command : fragment_comands) {
+      std::visit(
+          [&](auto &command) {
+            using Command = std::decay_t<decltype(command)>;
+
+            if constexpr (std::is_same_v<Command,
+                                         ve::webplatform::FillRectCommand>) {
+              command.x = cursor_x + div_style.border_width;
+              command.y = cursor_y + div_style.border_width;
+            } else if constexpr (std::is_same_v<
+                                     Command,
+                                     ve::webplatform::DrawBorderCommand>) {
+              command.x = cursor_x;
+              command.y = cursor_y;
+            }
+          },
+          render_command);
+    }
+    commands.insert(commands.end(), fragment_comands.begin(),
+                    fragment_comands.end());
   }
 
   for (size_t i = 0; i < fragment->child_fragments_.size(); ++i) {
     auto child_fragment = fragment->child_fragments_[i].get();
-    float child_cursor_x = cursor_x + div_style.GetPadding().paddig_left;
-    float child_cursor_y = cursor_y + div_style.GetPadding().paddig_top;
-    std::cout << "top paddign: "
-              << child_fragment->owner_->GetStyle().GetPadding().paddig_top
-              << std::endl;
-    std::cout << "left paddign: "
-              << child_fragment->owner_->GetStyle().GetPadding().paddig_left
-              << std::endl;
+    float child_cursor_x =
+        cursor_x + div_style.GetPadding().paddig_left + div_style.border_width;
+    float child_cursor_y =
+        cursor_y + div_style.GetPadding().paddig_top + div_style.border_width;
     auto child_commands =
         PaintOneDiv(child_fragment, child_cursor_x, child_cursor_y);
     commands.insert(commands.end(), child_commands.begin(),

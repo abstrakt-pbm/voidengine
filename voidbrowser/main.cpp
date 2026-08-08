@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <memory>
+#include <variant>
 #include <vector>
 
 // voidbrowser
@@ -15,7 +16,7 @@ int main(int argc, char **argv) {
   auto root_styles =
       ve::webplatform::Style(150, 50, ve::webplatform::Style::Colour::RED);
   root_styles.SetPadding(ve::webplatform::Padding(10.0f, 0.0f, 10.0f, 0.0f));
-
+  root_styles.border_width = 1.0f;
   ve::webplatform::Div root_div(root_styles);
 
   auto child_styles =
@@ -30,8 +31,7 @@ int main(int argc, char **argv) {
   std::vector<ve::webplatform::Div> divs;
   divs.push_back(std::move(root_div));
 
-  std::vector<ve::webplatform::FillRectCommand> command_list =
-      painter_engine.Paint(divs);
+  ve::webplatform::DisplayList command_list = painter_engine.Paint(divs);
 
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     SDL_Log("SDL_Init failed: %s", SDL_GetError());
@@ -70,16 +70,66 @@ int main(int argc, char **argv) {
     SDL_RenderClear(renderer);
 
     for (const auto &render_command : command_list) {
+      std::visit(
+          [&](const auto &command) {
+            using Command = std::decay_t<decltype(command)>;
 
-      SDL_FRect rect{.x = render_command.x,
-                     .y = render_command.y,
-                     .w = render_command.width,
-                     .h = render_command.height};
+            if constexpr (std::is_same_v<Command,
+                                         ve::webplatform::FillRectCommand>) {
+              SDL_FRect rect{
+                  .x = command.x,
+                  .y = command.y,
+                  .w = command.width,
+                  .h = command.height,
+              };
 
-      SDL_SetRenderDrawColor(renderer, render_command.r, render_command.g,
-                             render_command.b, 255);
+              SDL_SetRenderDrawColor(renderer, command.r, command.g, command.b,
+                                     255);
 
-      SDL_RenderFillRect(renderer, &rect);
+              SDL_RenderFillRect(renderer, &rect);
+
+            } else if constexpr (std::is_same_v<
+                                     Command,
+                                     ve::webplatform::DrawBorderCommand>) {
+              SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+              const float border_width = command.border_width;
+
+              SDL_FRect top{
+                  .x = command.x,
+                  .y = command.y,
+                  .w = command.width,
+                  .h = border_width,
+              };
+
+              SDL_FRect bottom{
+                  .x = command.x,
+                  .y = command.y + command.height - border_width,
+                  .w = command.width,
+                  .h = border_width,
+              };
+
+              SDL_FRect left{
+                  .x = command.x,
+                  .y = command.y,
+                  .w = border_width,
+                  .h = command.height,
+              };
+
+              SDL_FRect right{
+                  .x = command.x + command.width - border_width,
+                  .y = command.y,
+                  .w = border_width,
+                  .h = command.height,
+              };
+
+              SDL_RenderFillRect(renderer, &top);
+              SDL_RenderFillRect(renderer, &bottom);
+              SDL_RenderFillRect(renderer, &left);
+              SDL_RenderFillRect(renderer, &right);
+            }
+          },
+          render_command);
     }
 
     SDL_RenderPresent(renderer);
