@@ -106,8 +106,8 @@ PainterEngine::PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
   float cursor_x = offset_x + fragment->x_;
   float cursor_y = offset_y + fragment->y_;
 
+  const Div &div = *fragment->owner_;
   if (fragment->owner_) {
-    const Div &div = *fragment->owner_;
     FillRectCommand fragment_comand = CalculateRenderCommands(div);
     fragment_comand.x = cursor_x;
     fragment_comand.y = cursor_y;
@@ -116,7 +116,18 @@ PainterEngine::PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
 
   for (size_t i = 0; i < fragment->child_fragments_.size(); ++i) {
     auto child_fragment = fragment->child_fragments_[i].get();
-    auto child_commands = PaintOneDiv(child_fragment, cursor_x, cursor_y);
+    float child_cursor_x =
+        cursor_x + child_fragment->owner_->GetStyle().GetPadding().paddig_left;
+    float child_cursor_y =
+        cursor_y + child_fragment->owner_->GetStyle().GetPadding().paddig_top;
+    std::cout << "top paddign: "
+              << child_fragment->owner_->GetStyle().GetPadding().paddig_top
+              << std::endl;
+    std::cout << "left paddign: "
+              << child_fragment->owner_->GetStyle().GetPadding().paddig_left
+              << std::endl;
+    auto child_commands =
+        PaintOneDiv(child_fragment, child_cursor_x, child_cursor_y);
     commands.insert(commands.end(), child_commands.begin(),
                     child_commands.end());
   }

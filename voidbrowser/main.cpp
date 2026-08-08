@@ -1,3 +1,4 @@
+#include "document/style.h"
 #include <document/div.h>
 #include <document/documentpainter.h>
 
@@ -15,19 +16,12 @@ int main(int argc, char **argv) {
   ve::webplatform::Div root_div(
       ve::webplatform::Style(150, 50, ve::webplatform::Style::Colour::RED));
 
-  root_div.AddChild(std::make_unique<ve::webplatform::Div>(
-      ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN)));
+  auto child_styles =
+      ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN);
 
-  auto child_2 = std::make_unique<ve::webplatform::Div>(
-      ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN));
+  child_styles.SetPadding(ve::webplatform::Padding(10.0f, 0.0f, 10.0f, 0.0f));
+  auto child_2 = std::make_unique<ve::webplatform::Div>(child_styles);
 
-  child_2->AddChild(std::make_unique<ve::webplatform::Div>(
-      ve::webplatform::Style(25, 15, ve::webplatform::Style::Colour::BLUE)));
-  child_2->childs_[0].get()->AddChild(std::make_unique<ve::webplatform::Div>(
-      ve::webplatform::Style(10, 5, ve::webplatform::Style::Colour::RED)));
-
-  child_2->childs_[0].get()->AddChild(std::make_unique<ve::webplatform::Div>(
-      ve::webplatform::Style(10, 5, ve::webplatform::Style::Colour::GREEN)));
   root_div.AddChild(std::move(child_2));
 
   std::vector<ve::webplatform::Div> divs;
@@ -79,7 +73,6 @@ int main(int argc, char **argv) {
                      .w = render_command.width,
                      .h = render_command.height};
 
-      std::cout << render_command.g << std::endl;
       SDL_SetRenderDrawColor(renderer, render_command.r, render_command.g,
                              render_command.b, 255);
 
