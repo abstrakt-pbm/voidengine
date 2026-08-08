@@ -29,17 +29,18 @@ std::vector<FillRectCommand> PainterEngine::Paint(std::vector<Div> &divs) {
 
 FillRectCommand PainterEngine::CalculateRenderCommands(const Div &div) {
   FillRectCommand render_command;
-  render_command.width = div.width_;
-  render_command.height = div.height_;
-  if (div.colour_ == Div::Colour::RED) {
+
+  render_command.width = div.GetStyle().Width();
+  render_command.height = div.GetStyle().Height();
+  if (div.GetStyle().GetColour() == Style::Colour::RED) {
     render_command.r = 255;
     render_command.g = 0;
     render_command.b = 0;
-  } else if (div.colour_ == Div::Colour::GREEN) {
+  } else if (div.GetStyle().GetColour() == Style::Colour::GREEN) {
     render_command.r = 0;
     render_command.g = 255;
     render_command.b = 0;
-  } else if (div.colour_ == Div::Colour::BLUE) {
+  } else if (div.GetStyle().GetColour() == Style::Colour::BLUE) {
     render_command.r = 0;
     render_command.g = 0;
     render_command.b = 255;
@@ -75,8 +76,8 @@ PainterEngine::CalculateElementGeometry(Div *div) {
     return nullptr;
   }
 
-  auto fragment =
-      std::make_unique<PhysicalFragment>(0, 0, div->height_, div->width_, div);
+  auto fragment = std::make_unique<PhysicalFragment>(
+      0, 0, div->GetStyle().Height(), div->GetStyle().Width(), div);
 
   float current_x_cursor = 0.0f;
   float current_y_cursor = 0.0f;

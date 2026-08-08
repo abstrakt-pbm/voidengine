@@ -12,16 +12,22 @@
 int main(int argc, char **argv) {
   ve::webplatform::PainterEngine painter_engine;
 
-  ve::webplatform::Div root_div(100, 50, ve::webplatform::Div::Colour::RED);
+  ve::webplatform::Div root_div(
+      ve::webplatform::Style(150, 50, ve::webplatform::Style::Colour::RED));
 
   root_div.AddChild(std::make_unique<ve::webplatform::Div>(
-      30, 20, ve::webplatform::Div::Colour::GREEN));
+      ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN)));
 
   auto child_2 = std::make_unique<ve::webplatform::Div>(
-      30, 20, ve::webplatform::Div::Colour::GREEN);
+      ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN));
 
   child_2->AddChild(std::make_unique<ve::webplatform::Div>(
-      15, 10, ve::webplatform::Div::Colour::BLUE));
+      ve::webplatform::Style(25, 15, ve::webplatform::Style::Colour::BLUE)));
+  child_2->childs_[0].get()->AddChild(std::make_unique<ve::webplatform::Div>(
+      ve::webplatform::Style(10, 5, ve::webplatform::Style::Colour::RED)));
+
+  child_2->childs_[0].get()->AddChild(std::make_unique<ve::webplatform::Div>(
+      ve::webplatform::Style(10, 5, ve::webplatform::Style::Colour::GREEN)));
   root_div.AddChild(std::move(child_2));
 
   std::vector<ve::webplatform::Div> divs;

@@ -6,6 +6,7 @@ set(VEWP_SRC
     document/div.cc
     document/documentpainter.cc
     document/physicalfragment.cc
+    document/style.cc
 )
 
 add_library(voidengine_webplatform STATIC
