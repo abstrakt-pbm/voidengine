@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
       30, 20, ve::webplatform::Div::Colour::GREEN);
 
   child_2->AddChild(std::make_unique<ve::webplatform::Div>(
-      15, 10, ve::webplatform::Div::Colour::GREEN));
+      15, 10, ve::webplatform::Div::Colour::BLUE));
   root_div.AddChild(std::move(child_2));
 
   std::vector<ve::webplatform::Div> divs;

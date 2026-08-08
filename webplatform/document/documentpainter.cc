@@ -7,36 +7,23 @@
 namespace ve {
 namespace webplatform {
 
-std::vector<FillRectCommand>
-PainterEngine::Paint(std::vector<Div> &div_container) {
+std::vector<FillRectCommand> PainterEngine::Paint(std::vector<Div> &divs) {
   float cursor_y = 0.0f;
+  float cursor_x = 0.0f;
   std::vector<FillRectCommand> commands;
 
-  std::cout << CalculateDocumentGeometry(div_container)->ToString()
-            << std::endl;
-  /*
-for (const auto &div : div_container) {
+  auto document_geometry = CalculateDocumentGeometry(divs);
+  for (size_t i = 0; i < document_geometry->child_fragments_.size(); ++i) {
+    float local_cursor_y = cursor_y;
+    float local_cursor_x = cursor_x;
 
-// Геометрию расчитываем отдельно от команд, так как команды строяются от
-// родителя к ребёнку геометрия родителя строится когда понятны размеры
-// детей
-
-FillRectCommand command = CalculateRenderCommands(div);
-command.x = 0;
-command.y = cursor_y;
-cursor_y += command.height;
-commands.push_back(command);
-while (div.child_ != nullptr) {
-auto div_child = *div.child_;
-FillRectCommand child_command = CalculateRenderCommands(div_child);
-child_command.x = command.x;
-child_command.y = command.y;
-commands.push_back(child_command);
-break;
-}
-}
-*/
-
+    auto child_fragment = document_geometry->child_fragments_[i].get();
+    auto child_commands =
+        PaintOneDiv(child_fragment, local_cursor_x, local_cursor_y);
+    commands.insert(commands.end(), child_commands.begin(),
+                    child_commands.end());
+    cursor_y += child_fragment->height_;
+  }
   return commands;
 }
 
@@ -52,6 +39,10 @@ FillRectCommand PainterEngine::CalculateRenderCommands(const Div &div) {
     render_command.r = 0;
     render_command.g = 255;
     render_command.b = 0;
+  } else if (div.colour_ == Div::Colour::BLUE) {
+    render_command.r = 0;
+    render_command.g = 0;
+    render_command.b = 255;
   }
   return render_command;
 }
@@ -59,7 +50,8 @@ FillRectCommand PainterEngine::CalculateRenderCommands(const Div &div) {
 std::unique_ptr<PhysicalFragment>
 PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
 
-  auto root_physical_fragment = std::make_unique<PhysicalFragment>(0, 0, 0, 0);
+  auto root_physical_fragment =
+      std::make_unique<PhysicalFragment>(0, 0, 0, 0, nullptr);
   float root_h = 0.0f;
   float max_w = 0.0f;
   for (size_t i = 0; i < divs.size(); ++i) {
@@ -79,13 +71,12 @@ PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
 std::unique_ptr<PhysicalFragment>
 PainterEngine::CalculateElementGeometry(Div *div) {
   if (div == nullptr) {
-    std::cout << "physical fragment is null" << std::endl;
+    std::cout << "div is null" << std::endl;
     return nullptr;
   }
-  // длину и ширину рута можно посчитать только после окончательных размерах
-  // детей
+
   auto fragment =
-      std::make_unique<PhysicalFragment>(0, 0, div->height_, div->width_);
+      std::make_unique<PhysicalFragment>(0, 0, div->height_, div->width_, div);
 
   float current_x_cursor = 0.0f;
   float current_y_cursor = 0.0f;
@@ -94,6 +85,7 @@ PainterEngine::CalculateElementGeometry(Div *div) {
     auto child_physical_fragment = CalculateElementGeometry(child_div);
     child_physical_fragment->x_ = current_x_cursor;
     child_physical_fragment->y_ = current_y_cursor;
+    child_physical_fragment->owner_ = child_div;
     current_y_cursor += child_physical_fragment->height_;
 
     fragment->AddChild(std::move(child_physical_fragment));
@@ -101,6 +93,35 @@ PainterEngine::CalculateElementGeometry(Div *div) {
 
   return fragment;
 };
+
+std::vector<FillRectCommand>
+PainterEngine::PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
+                           float offset_y) {
+  if (fragment == nullptr) {
+    return std::vector<FillRectCommand>();
+  }
+
+  std::vector<FillRectCommand> commands;
+  float cursor_x = offset_x + fragment->x_;
+  float cursor_y = offset_y + fragment->y_;
+
+  if (fragment->owner_) {
+    const Div &div = *fragment->owner_;
+    FillRectCommand fragment_comand = CalculateRenderCommands(div);
+    fragment_comand.x = cursor_x;
+    fragment_comand.y = cursor_y;
+    commands.push_back(fragment_comand);
+  }
+
+  for (size_t i = 0; i < fragment->child_fragments_.size(); ++i) {
+    auto child_fragment = fragment->child_fragments_[i].get();
+    auto child_commands = PaintOneDiv(child_fragment, cursor_x, cursor_y);
+    commands.insert(commands.end(), child_commands.begin(),
+                    child_commands.end());
+  }
+
+  return commands;
+}
 
 } // namespace webplatform
 } // namespace ve

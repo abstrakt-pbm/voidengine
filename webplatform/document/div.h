@@ -7,7 +7,7 @@ namespace ve {
 namespace webplatform {
 class Div {
 public:
-  enum class Colour { RED, GREEN };
+  enum class Colour { RED, GREEN, BLUE };
 
   Div(float width, float height, Colour colour);
 

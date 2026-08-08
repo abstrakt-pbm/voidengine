@@ -31,8 +31,9 @@ void AppendFragment(const ve::webplatform::PhysicalFragment &fragment,
 namespace ve {
 namespace webplatform {
 
-PhysicalFragment::PhysicalFragment(float x, float y, float height, float width)
-    : x_(x), y_(y), height_(height), width_(width) {}
+PhysicalFragment::PhysicalFragment(float x, float y, float height, float width,
+                                   const Div *owner)
+    : x_(x), y_(y), height_(height), width_(width), owner_(owner) {}
 
 void PhysicalFragment::AddChild(
     std::unique_ptr<PhysicalFragment> child_fragment) {

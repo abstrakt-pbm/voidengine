@@ -30,6 +30,9 @@ public:
   std::unique_ptr<PhysicalFragment> CalculateElementGeometry(Div *div);
 
 private:
+  std::vector<FillRectCommand> PaintOneDiv(const PhysicalFragment *fragment,
+                                           float offset_x, float offset_y);
+
   FillRectCommand CalculateRenderCommands(const Div &div);
 };
 
