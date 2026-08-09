@@ -1,5 +1,6 @@
 #include "documentpainter.h"
 #include "document/physicalfragment.h"
+#include "document/style.h"
 
 #include <iostream>
 #include <memory>
@@ -83,19 +84,28 @@ PainterEngine::CalculateElementGeometry(Div *div) {
     std::cout << "div is null" << std::endl;
     return nullptr;
   }
+  const Style &div_style = div->GetStyle();
+  const Padding &div_paddings = div_style.GetPadding();
 
-  auto fragment = std::make_unique<PhysicalFragment>(
-      0, 0, div->GetStyle().Height(), div->GetStyle().Width(), div);
+  auto fragment = std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
+                                                     div_style.Width(), div);
 
-  float current_x_cursor = 0.0f;
-  float current_y_cursor = 0.0f;
+  float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
+
+  float current_y_cursor = div_paddings.paddig_top + div_style.border_width;
+
   for (size_t i = 0; i < div->childs_.size(); ++i) {
     auto child_div = div->childs_[i].get();
     auto child_physical_fragment = CalculateElementGeometry(child_div);
-    child_physical_fragment->x_ = current_x_cursor;
-    child_physical_fragment->y_ = current_y_cursor;
-    child_physical_fragment->owner_ = child_div;
-    current_y_cursor += child_physical_fragment->height_;
+    const Style &child_style = child_div->GetStyle();
+    const auto &margin = child_style.GetMargin();
+
+    child_physical_fragment->x_ = current_x_cursor + margin.margin_left;
+
+    child_physical_fragment->y_ = current_y_cursor + margin.margin_top;
+
+    current_y_cursor += child_physical_fragment->y_ +
+                        child_physical_fragment->height_ + margin.margin_bottom;
 
     fragment->AddChild(std::move(child_physical_fragment));
   }
@@ -103,6 +113,8 @@ PainterEngine::CalculateElementGeometry(Div *div) {
   return fragment;
 };
 
+// задача метода сформировать команду отрисовки
+// margin padding надо перенести в CalculateGeometry
 DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
                                        float offset_x, float offset_y) {
   if (fragment == nullptr) {
@@ -110,15 +122,13 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
   }
 
   DisplayList commands;
-  float cursor_x = offset_x + fragment->x_;
-  float cursor_y = offset_y + fragment->y_;
 
   const Div &div = *fragment->owner_;
   Style div_style = div.GetStyle();
-  if (fragment->owner_) {
-    // комманда отрисовки рамки
-    // потом закрасить рект
 
+  float cursor_x = offset_x + fragment->x_;
+  float cursor_y = offset_y + fragment->y_;
+  if (fragment->owner_) {
     DisplayList fragment_comands = CalculateRenderCommands(div);
     for (auto &render_command : fragment_comands) {
       std::visit(
@@ -144,10 +154,8 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
 
   for (size_t i = 0; i < fragment->child_fragments_.size(); ++i) {
     auto child_fragment = fragment->child_fragments_[i].get();
-    float child_cursor_x =
-        cursor_x + div_style.GetPadding().paddig_left + div_style.border_width;
-    float child_cursor_y =
-        cursor_y + div_style.GetPadding().paddig_top + div_style.border_width;
+    float child_cursor_x = cursor_x;
+    float child_cursor_y = cursor_y;
     auto child_commands =
         PaintOneDiv(child_fragment, child_cursor_x, child_cursor_y);
     commands.insert(commands.end(), child_commands.begin(),

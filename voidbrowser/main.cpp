@@ -23,10 +23,13 @@ int main(int argc, char **argv) {
       ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN);
 
   child_styles.SetPadding(ve::webplatform::Padding(2.0f, 0.0f, 2.0f, 0.0f));
+  child_styles.SetMargin(ve::webplatform::Margin(10.0f, 0.0f, 2.0f, 0.0f));
   auto child_2 = std::make_unique<ve::webplatform::Div>(child_styles);
+  auto child_3 = std::make_unique<ve::webplatform::Div>(child_styles);
   child_2->AddChild(std::make_unique<ve::webplatform::Div>(
       ve::webplatform::Style(20, 10, ve::webplatform::Style::Colour::BLUE)));
   root_div.AddChild(std::move(child_2));
+  root_div.AddChild(std::move(child_3));
 
   std::vector<ve::webplatform::Div> divs;
   divs.push_back(std::move(root_div));

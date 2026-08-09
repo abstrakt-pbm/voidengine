@@ -44,6 +44,9 @@ public:
   std::unique_ptr<PhysicalFragment> CalculateElementGeometry(Div *div);
 
 private:
+  // Получить команду отрисовки одного конкретного элемента
+  // тут с курсором только вопрос аккумуляции локальных координат, margine
+  // padding надо делать на этапе расчёта геометрии
   DisplayList PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
                           float offset_y);
 
