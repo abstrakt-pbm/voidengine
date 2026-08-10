@@ -33,6 +33,7 @@
 
 				pkgs.git
 				pkgs.sdl3
+				pkgs.gtest
 			];
 		};
 		CXX = "${llvm.clang}/bin/clang++";
