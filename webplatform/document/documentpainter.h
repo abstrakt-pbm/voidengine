@@ -3,6 +3,7 @@
 #include "div.h"
 #include "document/physicalfragment.h"
 
+#include <stack>
 #include <variant>
 #include <vector>
 
@@ -69,6 +70,7 @@ private:
 
   // ViewPort
   float viewport_width = 1280.0f;
+  std::stack<ClipCommand> clip_command_stack_;
 };
 
 } // namespace webplatform

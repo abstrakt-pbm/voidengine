@@ -161,6 +161,7 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
     clip_command.y = cursor_y;
     clip_command.width = fragment->width_ - 2 * div_style.border_width;
     clip_command.height = fragment->height_ - 2 * div_style.border_width;
+    clip_command_stack_.push(clip_command);
     commands.push_back(clip_command);
   }
 
@@ -199,7 +200,12 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
                     child_commands.end());
   }
   if (div_style.overflow_ == Style::Overflow::HIDDEN) {
-    commands.push_back(ResetClipCommand{});
+    clip_command_stack_.pop();
+    if (clip_command_stack_.empty()) {
+      commands.push_back(ResetClipCommand{});
+    } else {
+      commands.push_back(clip_command_stack_.top());
+    }
   }
   return commands;
 }

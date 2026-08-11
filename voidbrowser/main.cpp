@@ -13,28 +13,58 @@
 // voidbrowser
 int main(int argc, char **argv) {
   ve::webplatform::PainterEngine painter_engine;
+
+  // Root: большой внешний clip.
   auto root_styles =
-      ve::webplatform::Style(150, 50, ve::webplatform::Style::Colour::RED);
-  root_styles.SetPadding(ve::webplatform::Padding(10.0f, 10.0f, 10.0f, 10.0f));
-  root_styles.border_width = 0.0f;
+      ve::webplatform::Style(300, 180, ve::webplatform::Style::Colour::RED);
+
   root_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
   root_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
-  root_styles.overflow_ = ve::webplatform::Style::Overflow::VISIBLE;
+  root_styles.overflow_ = ve::webplatform::Style::Overflow::HIDDEN;
 
   ve::webplatform::Div root_div(root_styles);
-  auto child_styles =
-      ve::webplatform::Style(500, 200, ve::webplatform::Style::Colour::GREEN);
 
-  child_styles.SetPadding(ve::webplatform::Padding(2.0f, 0.0f, 2.0f, 0.0f));
-  child_styles.SetMargin(ve::webplatform::Margin(10.0f, 0.0f, 2.0f, 0.0f));
-  child_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
-  child_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
-  auto child_2 = std::make_unique<ve::webplatform::Div>(child_styles);
-  auto child_3 = std::make_unique<ve::webplatform::Div>(child_styles);
-  child_2->AddChild(std::make_unique<ve::webplatform::Div>(
-      ve::webplatform::Style(20, 10, ve::webplatform::Style::Colour::BLUE)));
+  // Первый child — маленький внутренний clip.
+  auto child_1_styles =
+      ve::webplatform::Style(120, 60, ve::webplatform::Style::Colour::GREEN);
+
+  child_1_styles.SetMargin(ve::webplatform::Margin(10.0f, 0.0f, 10.0f, 10.0f));
+
+  child_1_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
+
+  child_1_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
+
+  child_1_styles.overflow_ = ve::webplatform::Style::Overflow::HIDDEN;
+
+  auto child_1 = std::make_unique<ve::webplatform::Div>(child_1_styles);
+
+  // Огромный grandchild.
+  // Он должен быть обрезан по child_1, а не только по root.
+  auto grandchild_styles =
+      ve::webplatform::Style(300, 100, ve::webplatform::Style::Colour::BLUE);
+
+  grandchild_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
+
+  grandchild_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
+
+  child_1->AddChild(std::make_unique<ve::webplatform::Div>(grandchild_styles));
+
+  // Второй child — широкий.
+  // Он нужен именно для проверки восстановления root clip после pop child_1.
+  auto child_2_styles =
+      ve::webplatform::Style(500, 60, ve::webplatform::Style::Colour::GREEN);
+
+  child_2_styles.SetMargin(ve::webplatform::Margin(10.0f, 0.0f, 10.0f, 0.0f));
+
+  child_2_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
+
+  child_2_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
+
+  auto child_2 = std::make_unique<ve::webplatform::Div>(child_2_styles);
+
+  root_div.AddChild(std::move(child_1));
   root_div.AddChild(std::move(child_2));
-  root_div.AddChild(std::move(child_3));
+
   std::vector<ve::webplatform::Div> divs;
   divs.push_back(std::move(root_div));
 
