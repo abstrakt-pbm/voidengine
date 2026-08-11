@@ -50,7 +50,7 @@ private:
   DisplayList PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
                           float offset_y);
 
-  DisplayList CalculateRenderCommands(const Div &div);
+  DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
 };
 
 } // namespace webplatform

@@ -32,6 +32,7 @@ public:
 class Style {
 public:
   enum class Colour { RED, GREEN, BLUE };
+  enum class HeightMode { FIXED, AUTO };
 
   Style(float width, float height, Colour colour);
 
@@ -45,6 +46,7 @@ public:
   void SetPadding(Padding paddings);
   void SetMargin(Margin margins);
 
+  HeightMode height_mode_ = HeightMode::FIXED;
   float width_;
   float height_;
 

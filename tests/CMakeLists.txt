@@ -2,6 +2,7 @@ find_package(GTest REQUIRED)
 
 add_executable(voidengine_tests
     conformance/css/box/margin_test.cpp
+    conformance/css/box/height_test.cpp
 )
 
 target_link_libraries(voidengine_tests

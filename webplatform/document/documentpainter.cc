@@ -28,18 +28,19 @@ DisplayList PainterEngine::Paint(std::vector<Div> &divs) {
   return commands;
 }
 
-DisplayList PainterEngine::CalculateRenderCommands(const Div &div) {
+DisplayList
+PainterEngine::CalculateRenderCommands(const PhysicalFragment &fragment) {
   FillRectCommand render_command;
   DrawBorderCommand border_command;
+  const Div &div = *fragment.owner_;
 
-  border_command.width = div.GetStyle().Width();
-  border_command.height = div.GetStyle().Height();
+  border_command.width = fragment.width_;
+  border_command.height = fragment.height_;
   border_command.border_width = div.GetStyle().border_width;
 
-  render_command.width =
-      div.GetStyle().Width() - 2 * div.GetStyle().border_width;
-  render_command.height =
-      div.GetStyle().Height() - 2 * div.GetStyle().border_width;
+  render_command.width = fragment.width_ - 2 * div.GetStyle().border_width;
+  render_command.height = fragment.height_ - 2 * div.GetStyle().border_width;
+  std::cout << "render height: " << fragment.height_ << std::endl;
 
   if (div.GetStyle().GetColour() == Style::Colour::RED) {
     render_command.r = 255;
@@ -87,8 +88,9 @@ PainterEngine::CalculateElementGeometry(Div *div) {
   const Style &div_style = div->GetStyle();
   const Padding &div_paddings = div_style.GetPadding();
 
-  auto fragment = std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
-                                                     div_style.Width(), div);
+  std::unique_ptr<PhysicalFragment> fragment =
+      std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
+                                         div_style.Width(), div);
 
   float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
 
@@ -104,17 +106,24 @@ PainterEngine::CalculateElementGeometry(Div *div) {
 
     child_physical_fragment->y_ = current_y_cursor + margin.margin_top;
 
-    current_y_cursor += child_physical_fragment->y_ +
-                        child_physical_fragment->height_ + margin.margin_bottom;
+    current_y_cursor = child_physical_fragment->y_ +
+                       child_physical_fragment->height_ + margin.margin_bottom;
 
     fragment->AddChild(std::move(child_physical_fragment));
+  }
+
+  if (div_style.height_mode_ == Style::HeightMode::FIXED) {
+    fragment->height_ = div_style.Height();
+  } else if (div_style.height_mode_ == Style::HeightMode::AUTO) {
+    float fragment_auto_height = current_y_cursor +
+                                 div_style.GetPadding().paddig_bottom +
+                                 div_style.border_width;
+    fragment->height_ = fragment_auto_height;
   }
 
   return fragment;
 };
 
-// задача метода сформировать команду отрисовки
-// margin padding надо перенести в CalculateGeometry
 DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
                                        float offset_x, float offset_y) {
   if (fragment == nullptr) {
@@ -129,7 +138,7 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
   float cursor_x = offset_x + fragment->x_;
   float cursor_y = offset_y + fragment->y_;
   if (fragment->owner_) {
-    DisplayList fragment_comands = CalculateRenderCommands(div);
+    DisplayList fragment_comands = CalculateRenderCommands(*fragment);
     for (auto &render_command : fragment_comands) {
       std::visit(
           [&](auto &command) {
