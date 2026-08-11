@@ -1,5 +1,6 @@
 #pragma once
 
+#include "document/domnode.h"
 #include "document/style.h"
 
 #include <memory>
@@ -7,14 +8,14 @@
 
 namespace ve {
 namespace webplatform {
-class Div {
+class Div : public DomNode {
 public:
   Div(Style style);
 
-  void AddChild(std::unique_ptr<Div> child_div);
+  void AddChild(std::unique_ptr<DomNode> child_element);
   const Style &GetStyle() const;
 
-  std::vector<std::unique_ptr<Div>> childs_;
+  std::vector<std::unique_ptr<DomNode>> childs_;
 
 private:
   Style style_;

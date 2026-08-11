@@ -1,6 +1,8 @@
 #include "documentpainter.h"
+#include "document/domnode.h"
 #include "document/physicalfragment.h"
 #include "document/style.h"
+#include "document/textelement.h"
 
 #include <iostream>
 #include <memory>
@@ -65,9 +67,9 @@ PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
   float root_h = 0.0f;
   float max_w = 0.0f;
   for (size_t i = 0; i < divs.size(); ++i) {
-    Div &root_div = divs[i];
+    const DomNode &root_div = divs[i];
     GeometryConstraints geometry_constrains = {.max_width = viewport_width};
-    auto child_geom = CalculateElementGeometry(&root_div, geometry_constrains);
+    auto child_geom = CalculateElementGeometry(root_div, geometry_constrains);
     root_h += child_geom->height_;
     if (max_w < child_geom->width_) {
       max_w = child_geom->width_;
@@ -78,68 +80,6 @@ PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
   root_physical_fragment->width_ = max_w;
   return root_physical_fragment;
 }
-
-std::unique_ptr<PhysicalFragment>
-PainterEngine::CalculateElementGeometry(Div *div,
-                                        const GeometryConstraints &constrains) {
-  if (div == nullptr) {
-    std::cout << "div is null" << std::endl;
-    return nullptr;
-  }
-  const Style &div_style = div->GetStyle();
-  const Padding &div_paddings = div_style.GetPadding();
-  const Margin &div_margins = div_style.GetMargin();
-
-  std::unique_ptr<PhysicalFragment> fragment =
-      std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
-                                         div_style.Width(), div);
-
-  float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
-  float current_y_cursor = div_paddings.paddig_top + div_style.border_width;
-
-  // Calculate fragment width
-  if (div_style.width_mode_ == Style::WidthMode::FIXED) {
-    fragment->width_ = div_style.Width();
-  } else if (div_style.width_mode_ == Style::WidthMode::AUTO) {
-    fragment->width_ = constrains.max_width - div_margins.margin_left -
-                       div_margins.margin_right;
-  }
-  // content box width
-  float parent_content_box_width = fragment->width_ - div_paddings.paddig_left -
-                                   div_paddings.paddig_right -
-                                   2 * div_style.border_width;
-  for (size_t i = 0; i < div->childs_.size(); ++i) {
-    auto child_div = div->childs_[i].get();
-
-    GeometryConstraints child_geometry_constrains = {
-        .max_width = parent_content_box_width};
-    auto child_physical_fragment =
-        CalculateElementGeometry(child_div, child_geometry_constrains);
-    const Style &child_style = child_div->GetStyle();
-    const auto &margin = child_style.GetMargin();
-
-    child_physical_fragment->x_ = current_x_cursor + margin.margin_left;
-
-    child_physical_fragment->y_ = current_y_cursor + margin.margin_top;
-
-    current_y_cursor = child_physical_fragment->y_ +
-                       child_physical_fragment->height_ + margin.margin_bottom;
-
-    fragment->AddChild(std::move(child_physical_fragment));
-  }
-
-  // Calculate fragment height
-  if (div_style.height_mode_ == Style::HeightMode::FIXED) {
-    fragment->height_ = div_style.Height();
-  } else if (div_style.height_mode_ == Style::HeightMode::AUTO) {
-    float fragment_auto_height = current_y_cursor +
-                                 div_style.GetPadding().paddig_bottom +
-                                 div_style.border_width;
-    fragment->height_ = fragment_auto_height;
-  }
-
-  return fragment;
-};
 
 DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
                                        float offset_x, float offset_y) {
@@ -210,5 +150,88 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
   return commands;
 }
 
+std::unique_ptr<PhysicalFragment>
+PainterEngine::CalculateElementGeometry(const DomNode &dom_node,
+                                        const GeometryConstraints &constrains) {
+  if (auto *divc = dynamic_cast<const Div *>(&dom_node)) {
+    Div *div = const_cast<Div *>(divc);
+    return CalculateDivGeometry(div, constrains);
+  } else if (auto *text = dynamic_cast<const TextElement *>(&dom_node)) {
+    return CalculateTextGeometry(text, constrains);
+  }
+}
+std::unique_ptr<PhysicalFragment>
+PainterEngine::CalculateTextGeometry(const TextElement *text_element,
+                                     const GeometryConstraints &constrains) {
+  return nullptr;
+}
+
+std::unique_ptr<PhysicalFragment>
+PainterEngine::CalculateDivGeometry(const Div *div,
+                                    const GeometryConstraints &constrains) {
+  if (div == nullptr) {
+    std::cout << "div is null" << std::endl;
+    return nullptr;
+  }
+  const Style &div_style = div->GetStyle();
+  const Padding &div_paddings = div_style.GetPadding();
+  const Margin &div_margins = div_style.GetMargin();
+
+  std::unique_ptr<PhysicalFragment> fragment =
+      std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
+                                         div_style.Width(), div);
+
+  // div layout
+  // layout алгоритмы нужно вынести отдельно
+  float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
+  float current_y_cursor = div_paddings.paddig_top + div_style.border_width;
+
+  // Calculate fragment width
+  if (div_style.width_mode_ == Style::WidthMode::FIXED) {
+    fragment->width_ = div_style.Width();
+  } else if (div_style.width_mode_ == Style::WidthMode::AUTO) {
+    fragment->width_ = constrains.max_width - div_margins.margin_left -
+                       div_margins.margin_right;
+  }
+  // content box width
+  float parent_content_box_width = fragment->width_ - div_paddings.paddig_left -
+                                   div_paddings.paddig_right -
+                                   2 * div_style.border_width;
+  for (size_t i = 0; i < div->childs_.size(); ++i) {
+    auto child_div = div->childs_[i].get();
+    const DomNode &child_dom_node = *child_div;
+    GeometryConstraints child_geometry_constrains = {
+        .max_width = parent_content_box_width};
+    auto child_physical_fragment =
+        CalculateElementGeometry(child_dom_node, child_geometry_constrains);
+
+    // layout
+    if (Div *child_div_elem = dynamic_cast<Div *>(child_div)) {
+      const Style &child_style = child_div_elem->GetStyle();
+      const auto &margin = child_style.GetMargin();
+
+      child_physical_fragment->x_ = current_x_cursor + margin.margin_left;
+
+      child_physical_fragment->y_ = current_y_cursor + margin.margin_top;
+
+      current_y_cursor = child_physical_fragment->y_ +
+                         child_physical_fragment->height_ +
+                         margin.margin_bottom;
+    }
+    fragment->AddChild(std::move(child_physical_fragment));
+  }
+
+  // Calculate fragment height
+  if (div_style.height_mode_ == Style::HeightMode::FIXED) {
+    fragment->height_ = div_style.Height();
+  } else if (div_style.height_mode_ == Style::HeightMode::AUTO) {
+    float fragment_auto_height = current_y_cursor +
+                                 div_style.GetPadding().paddig_bottom +
+                                 div_style.border_width;
+    fragment->height_ = fragment_auto_height;
+  }
+
+  return fragment;
+}
 } // namespace webplatform
 } // namespace ve

@@ -2,6 +2,7 @@
 
 #include "div.h"
 #include "document/physicalfragment.h"
+#include "document/textelement.h"
 
 #include <stack>
 #include <variant>
@@ -57,7 +58,8 @@ public:
   CalculateDocumentGeometry(std::vector<Div> &divs);
 
   std::unique_ptr<PhysicalFragment>
-  CalculateElementGeometry(Div *div, const GeometryConstraints &constrains);
+  CalculateElementGeometry(const DomNode &dom_node,
+                           const GeometryConstraints &constrains);
 
 private:
   // Получить команду отрисовки одного конкретного элемента
@@ -68,6 +70,12 @@ private:
 
   DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
 
+  std::unique_ptr<PhysicalFragment>
+  CalculateTextGeometry(const TextElement *text_element,
+                        const GeometryConstraints &constrains);
+
+  std::unique_ptr<PhysicalFragment>
+  CalculateDivGeometry(const Div *div, const GeometryConstraints &constrains);
   // ViewPort
   float viewport_width = 1280.0f;
   std::stack<ClipCommand> clip_command_stack_;

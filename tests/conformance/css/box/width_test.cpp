@@ -20,7 +20,7 @@ TEST(WidthTest, FixedWidthUsesStyleWidth) {
   };
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&div, constraints);
+  auto fragment = painter.CalculateElementGeometry(div, constraints);
 
   ASSERT_NE(fragment, nullptr);
 
@@ -41,7 +41,7 @@ TEST(WidthTest, AutoWidthUsesAvailableWidth) {
   };
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&div, constraints);
+  auto fragment = painter.CalculateElementGeometry(div, constraints);
 
   ASSERT_NE(fragment, nullptr);
 
@@ -76,7 +76,7 @@ TEST(WidthTest, AutoChildUsesParentContentWidth) {
   };
 
   PainterEngine painter;
-  auto parent_fragment = painter.CalculateElementGeometry(&parent, constraints);
+  auto parent_fragment = painter.CalculateElementGeometry(parent, constraints);
 
   ASSERT_NE(parent_fragment, nullptr);
   ASSERT_EQ(parent_fragment->child_fragments_.size(), 1);

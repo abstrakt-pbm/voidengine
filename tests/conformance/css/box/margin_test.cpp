@@ -27,7 +27,7 @@ TEST(MarginTest, AppliesTopAndLeftMarginToChild) {
 
   PainterEngine painter;
   GeometryConstraints constrains = {.max_width = 720.0f};
-  auto fragment = painter.CalculateElementGeometry(&root, constrains);
+  auto fragment = painter.CalculateElementGeometry(root, constrains);
 
   ASSERT_NE(fragment, nullptr);
   ASSERT_EQ(fragment->child_fragments_.size(), 1);
@@ -61,7 +61,7 @@ TEST(MarginTest, VerticalMarginsAffectSiblingPosition) {
   PainterEngine painter;
 
   GeometryConstraints constrains = {.max_width = 720.0f};
-  auto fragment = painter.CalculateElementGeometry(&root, constrains);
+  auto fragment = painter.CalculateElementGeometry(root, constrains);
 
   ASSERT_NE(fragment, nullptr);
   ASSERT_EQ(fragment->child_fragments_.size(), 2);
@@ -102,7 +102,7 @@ TEST(MarginTest, NestedMarginIsRelativeToParentContentArea) {
 
   PainterEngine painter;
   GeometryConstraints constrains = {.max_width = 720.0f};
-  auto fragment = painter.CalculateElementGeometry(&root, constrains);
+  auto fragment = painter.CalculateElementGeometry(root, constrains);
 
   ASSERT_NE(fragment, nullptr);
   ASSERT_EQ(fragment->child_fragments_.size(), 1);

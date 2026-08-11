@@ -17,7 +17,7 @@ TEST(HeightTest, FixedHeightUsesStyleHeight) {
 
   PainterEngine painter;
   GeometryConstraints constrains = {.max_width = 720.0f};
-  auto fragment = painter.CalculateElementGeometry(&div, constrains);
+  auto fragment = painter.CalculateElementGeometry(div, constrains);
 
   ASSERT_NE(fragment, nullptr);
 
@@ -49,7 +49,7 @@ TEST(HeightTest, AutoHeightIsCalculatedFromChildren) {
 
   PainterEngine painter;
   GeometryConstraints constrains = {.max_width = 720.0f};
-  auto fragment = painter.CalculateElementGeometry(&root, constrains);
+  auto fragment = painter.CalculateElementGeometry(root, constrains);
 
   ASSERT_NE(fragment, nullptr);
 
@@ -79,7 +79,7 @@ TEST(HeightTest, EmptyAutoHeightUsesPaddingAndBorder) {
 
   PainterEngine painter;
   GeometryConstraints constrains = {.max_width = 720.0f};
-  auto fragment = painter.CalculateElementGeometry(&div, constrains);
+  auto fragment = painter.CalculateElementGeometry(div, constrains);
 
   ASSERT_NE(fragment, nullptr);
 

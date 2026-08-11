@@ -4,6 +4,7 @@ project(voidengine_webplatform LANGUAGES CXX)
 
 set(VEWP_SRC
     document/div.cc
+    document/textelement.cc
     document/documentpainter.cc
     document/physicalfragment.cc
     document/style.cc

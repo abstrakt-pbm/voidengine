@@ -1,4 +1,5 @@
 #include "document/style.h"
+#include "document/textelement.h"
 #include <document/div.h>
 #include <document/documentpainter.h>
 
@@ -20,10 +21,11 @@ int main(int argc, char **argv) {
 
   root_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
   root_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
-  root_styles.overflow_ = ve::webplatform::Style::Overflow::HIDDEN;
+  root_styles.overflow_ = ve::webplatform::Style::Overflow::VISIBLE;
 
   ve::webplatform::Div root_div(root_styles);
-
+  ve::webplatform::TextElement text_elem;
+  root_div.AddChild(std::make_unique<ve::webplatform::TextElement>());
   // Первый child — маленький внутренний clip.
   auto child_1_styles =
       ve::webplatform::Style(120, 60, ve::webplatform::Style::Colour::GREEN);
