@@ -34,6 +34,7 @@ public:
   enum class Colour { RED, GREEN, BLUE };
   enum class HeightMode { FIXED, AUTO };
   enum class WidthMode { FIXED, AUTO };
+  enum class Overflow { VISIBLE, HIDDEN };
 
   Style(float width, float height, Colour colour);
 
@@ -49,6 +50,7 @@ public:
 
   HeightMode height_mode_ = HeightMode::FIXED;
   WidthMode width_mode_ = WidthMode::FIXED;
+  Overflow overflow_ = Overflow::VISIBLE;
   float width_;
   float height_;
 

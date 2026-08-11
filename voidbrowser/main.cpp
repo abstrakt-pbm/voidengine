@@ -17,16 +17,18 @@ int main(int argc, char **argv) {
       ve::webplatform::Style(150, 50, ve::webplatform::Style::Colour::RED);
   root_styles.SetPadding(ve::webplatform::Padding(10.0f, 10.0f, 10.0f, 10.0f));
   root_styles.border_width = 0.0f;
-  root_styles.height_mode_ = ve::webplatform::Style::HeightMode::AUTO;
-  root_styles.width_mode_ = ve::webplatform::Style::WidthMode::AUTO;
+  root_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
+  root_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
+  root_styles.overflow_ = ve::webplatform::Style::Overflow::VISIBLE;
+
   ve::webplatform::Div root_div(root_styles);
   auto child_styles =
-      ve::webplatform::Style(50, 20, ve::webplatform::Style::Colour::GREEN);
+      ve::webplatform::Style(500, 200, ve::webplatform::Style::Colour::GREEN);
 
   child_styles.SetPadding(ve::webplatform::Padding(2.0f, 0.0f, 2.0f, 0.0f));
   child_styles.SetMargin(ve::webplatform::Margin(10.0f, 0.0f, 2.0f, 0.0f));
-  child_styles.height_mode_ = ve::webplatform::Style::HeightMode::AUTO;
-  child_styles.width_mode_ = ve::webplatform::Style::WidthMode::AUTO;
+  child_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
+  child_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
   auto child_2 = std::make_unique<ve::webplatform::Div>(child_styles);
   auto child_3 = std::make_unique<ve::webplatform::Div>(child_styles);
   child_2->AddChild(std::make_unique<ve::webplatform::Div>(
@@ -81,6 +83,7 @@ int main(int argc, char **argv) {
 
             if constexpr (std::is_same_v<Command,
                                          ve::webplatform::FillRectCommand>) {
+
               SDL_FRect rect{
                   .x = command.x,
                   .y = command.y,
@@ -96,6 +99,7 @@ int main(int argc, char **argv) {
             } else if constexpr (std::is_same_v<
                                      Command,
                                      ve::webplatform::DrawBorderCommand>) {
+
               SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
               const float border_width = command.border_width;
@@ -132,6 +136,23 @@ int main(int argc, char **argv) {
               SDL_RenderFillRect(renderer, &bottom);
               SDL_RenderFillRect(renderer, &left);
               SDL_RenderFillRect(renderer, &right);
+
+            } else if constexpr (std::is_same_v<Command,
+                                                ve::webplatform::ClipCommand>) {
+
+              SDL_Rect clip_rect{
+                  .x = static_cast<int>(command.x),
+                  .y = static_cast<int>(command.y),
+                  .w = static_cast<int>(command.width),
+                  .h = static_cast<int>(command.height),
+              };
+
+              SDL_SetRenderClipRect(renderer, &clip_rect);
+            } else if constexpr (std::is_same_v<
+                                     Command,
+                                     ve::webplatform::ResetClipCommand>) {
+
+              SDL_SetRenderClipRect(renderer, nullptr);
             }
           },
           render_command);

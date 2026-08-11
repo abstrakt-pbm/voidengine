@@ -154,6 +154,16 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
 
   float cursor_x = offset_x + fragment->x_;
   float cursor_y = offset_y + fragment->y_;
+
+  if (div_style.overflow_ == Style::Overflow::HIDDEN) {
+    ClipCommand clip_command;
+    clip_command.x = cursor_x;
+    clip_command.y = cursor_y;
+    clip_command.width = fragment->width_ - 2 * div_style.border_width;
+    clip_command.height = fragment->height_ - 2 * div_style.border_width;
+    commands.push_back(clip_command);
+  }
+
   if (fragment->owner_) {
     DisplayList fragment_comands = CalculateRenderCommands(*fragment);
     for (auto &render_command : fragment_comands) {
@@ -174,6 +184,7 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
           },
           render_command);
     }
+
     commands.insert(commands.end(), fragment_comands.begin(),
                     fragment_comands.end());
   }
@@ -187,7 +198,9 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
     commands.insert(commands.end(), child_commands.begin(),
                     child_commands.end());
   }
-
+  if (div_style.overflow_ == Style::Overflow::HIDDEN) {
+    commands.push_back(ResetClipCommand{});
+  }
   return commands;
 }
 

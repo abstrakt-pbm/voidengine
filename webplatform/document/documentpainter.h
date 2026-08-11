@@ -9,6 +9,15 @@
 namespace ve {
 namespace webplatform {
 
+struct ResetClipCommand {};
+
+struct ClipCommand {
+  float x = 0.0f;
+  float y = 0.0f;
+  float width = 0.0f;
+  float height = 0.0f;
+};
+
 struct FillRectCommand {
   float x = 0.0f;
   float y = 0.0f;
@@ -34,7 +43,8 @@ struct GeometryConstraints {
   float max_width = 0.0f;
 };
 
-using RenderingCommand = std::variant<FillRectCommand, DrawBorderCommand>;
+using RenderingCommand = std::variant<FillRectCommand, DrawBorderCommand,
+                                      ClipCommand, ResetClipCommand>;
 
 using DisplayList = std::vector<RenderingCommand>;
 
