@@ -35,6 +35,9 @@ PhysicalFragment::PhysicalFragment(float x, float y, float height, float width,
                                    const Div *owner)
     : x_(x), y_(y), height_(height), width_(width), owner_(owner) {}
 
+PhysicalFragment::PhysicalFragment(float x, float y, float height, float width)
+    : x_(x), y_(y), height_(height), width_(width) {}
+
 void PhysicalFragment::AddChild(
     std::unique_ptr<PhysicalFragment> child_fragment) {
   child_fragments_.push_back(std::move(child_fragment));
@@ -45,5 +48,15 @@ std::string PhysicalFragment::ToString() const {
   AppendFragment(*this, stream, 0);
   return stream.str();
 }
+
+TextPhysicalFragment::TextPhysicalFragment(float x, float y, float height,
+                                           float width, float baseline,
+                                           const TextElement *owner)
+    : PhysicalFragment(x, y, height, width) {
+
+  baseline_ = baseline;
+  owner_ = owner;
+}
+
 } // namespace webplatform
 } // namespace ve

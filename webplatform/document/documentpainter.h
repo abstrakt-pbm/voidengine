@@ -5,6 +5,7 @@
 #include "document/textelement.h"
 
 #include <stack>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -12,6 +13,14 @@ namespace ve {
 namespace webplatform {
 
 struct ResetClipCommand {};
+
+struct DrawTextCommand {
+  float x;
+  float baseline_y;
+  float font_size;
+
+  std::string text;
+};
 
 struct ClipCommand {
   float x = 0.0f;
@@ -45,8 +54,9 @@ struct GeometryConstraints {
   float max_width = 0.0f;
 };
 
-using RenderingCommand = std::variant<FillRectCommand, DrawBorderCommand,
-                                      ClipCommand, ResetClipCommand>;
+using RenderingCommand =
+    std::variant<FillRectCommand, DrawBorderCommand, ClipCommand,
+                 ResetClipCommand, DrawTextCommand>;
 
 using DisplayList = std::vector<RenderingCommand>;
 
@@ -68,6 +78,8 @@ private:
   DisplayList PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
                           float offset_y);
 
+  DisplayList PaintText(const TextPhysicalFragment *fragment, float offset_x,
+                        float offset_y);
   DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
 
   std::unique_ptr<PhysicalFragment>

@@ -32,7 +32,10 @@
 				pkgs.ccache
 
 				pkgs.git
+
 				pkgs.sdl3
+				pkgs.sdl3-ttf
+
 				pkgs.gtest
 			];
 		};
