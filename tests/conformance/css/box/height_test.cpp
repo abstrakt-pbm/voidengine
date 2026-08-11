@@ -16,7 +16,8 @@ TEST(HeightTest, FixedHeightUsesStyleHeight) {
   Div div(style);
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&div);
+  GeometryConstraints constrains = {.max_width = 720.0f};
+  auto fragment = painter.CalculateElementGeometry(&div, constrains);
 
   ASSERT_NE(fragment, nullptr);
 
@@ -47,7 +48,8 @@ TEST(HeightTest, AutoHeightIsCalculatedFromChildren) {
   root.AddChild(std::make_unique<Div>(second_style));
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&root);
+  GeometryConstraints constrains = {.max_width = 720.0f};
+  auto fragment = painter.CalculateElementGeometry(&root, constrains);
 
   ASSERT_NE(fragment, nullptr);
 
@@ -76,7 +78,8 @@ TEST(HeightTest, EmptyAutoHeightUsesPaddingAndBorder) {
   Div div(style);
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&div);
+  GeometryConstraints constrains = {.max_width = 720.0f};
+  auto fragment = painter.CalculateElementGeometry(&div, constrains);
 
   ASSERT_NE(fragment, nullptr);
 

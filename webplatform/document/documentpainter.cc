@@ -40,7 +40,6 @@ PainterEngine::CalculateRenderCommands(const PhysicalFragment &fragment) {
 
   render_command.width = fragment.width_ - 2 * div.GetStyle().border_width;
   render_command.height = fragment.height_ - 2 * div.GetStyle().border_width;
-  std::cout << "render height: " << fragment.height_ << std::endl;
 
   if (div.GetStyle().GetColour() == Style::Colour::RED) {
     render_command.r = 255;
@@ -67,7 +66,8 @@ PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
   float max_w = 0.0f;
   for (size_t i = 0; i < divs.size(); ++i) {
     Div &root_div = divs[i];
-    auto child_geom = CalculateElementGeometry(&root_div);
+    GeometryConstraints geometry_constrains = {.max_width = viewport_width};
+    auto child_geom = CalculateElementGeometry(&root_div, geometry_constrains);
     root_h += child_geom->height_;
     if (max_w < child_geom->width_) {
       max_w = child_geom->width_;
@@ -80,25 +80,41 @@ PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
 }
 
 std::unique_ptr<PhysicalFragment>
-PainterEngine::CalculateElementGeometry(Div *div) {
+PainterEngine::CalculateElementGeometry(Div *div,
+                                        const GeometryConstraints &constrains) {
   if (div == nullptr) {
     std::cout << "div is null" << std::endl;
     return nullptr;
   }
   const Style &div_style = div->GetStyle();
   const Padding &div_paddings = div_style.GetPadding();
+  const Margin &div_margins = div_style.GetMargin();
 
   std::unique_ptr<PhysicalFragment> fragment =
       std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
                                          div_style.Width(), div);
 
   float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
-
   float current_y_cursor = div_paddings.paddig_top + div_style.border_width;
 
+  // Calculate fragment width
+  if (div_style.width_mode_ == Style::WidthMode::FIXED) {
+    fragment->width_ = div_style.Width();
+  } else if (div_style.width_mode_ == Style::WidthMode::AUTO) {
+    fragment->width_ = constrains.max_width - div_margins.margin_left -
+                       div_margins.margin_right;
+  }
+  // content box width
+  float parent_content_box_width = fragment->width_ - div_paddings.paddig_left -
+                                   div_paddings.paddig_right -
+                                   2 * div_style.border_width;
   for (size_t i = 0; i < div->childs_.size(); ++i) {
     auto child_div = div->childs_[i].get();
-    auto child_physical_fragment = CalculateElementGeometry(child_div);
+
+    GeometryConstraints child_geometry_constrains = {
+        .max_width = parent_content_box_width};
+    auto child_physical_fragment =
+        CalculateElementGeometry(child_div, child_geometry_constrains);
     const Style &child_style = child_div->GetStyle();
     const auto &margin = child_style.GetMargin();
 
@@ -112,6 +128,7 @@ PainterEngine::CalculateElementGeometry(Div *div) {
     fragment->AddChild(std::move(child_physical_fragment));
   }
 
+  // Calculate fragment height
   if (div_style.height_mode_ == Style::HeightMode::FIXED) {
     fragment->height_ = div_style.Height();
   } else if (div_style.height_mode_ == Style::HeightMode::AUTO) {

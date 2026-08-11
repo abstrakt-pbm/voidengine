@@ -33,6 +33,7 @@ class Style {
 public:
   enum class Colour { RED, GREEN, BLUE };
   enum class HeightMode { FIXED, AUTO };
+  enum class WidthMode { FIXED, AUTO };
 
   Style(float width, float height, Colour colour);
 
@@ -47,6 +48,7 @@ public:
   void SetMargin(Margin margins);
 
   HeightMode height_mode_ = HeightMode::FIXED;
+  WidthMode width_mode_ = WidthMode::FIXED;
   float width_;
   float height_;
 

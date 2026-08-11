@@ -30,6 +30,10 @@ struct DrawBorderCommand {
   float border_width = 0.0f;
 };
 
+struct GeometryConstraints {
+  float max_width = 0.0f;
+};
+
 using RenderingCommand = std::variant<FillRectCommand, DrawBorderCommand>;
 
 using DisplayList = std::vector<RenderingCommand>;
@@ -41,7 +45,8 @@ public:
   std::unique_ptr<PhysicalFragment>
   CalculateDocumentGeometry(std::vector<Div> &divs);
 
-  std::unique_ptr<PhysicalFragment> CalculateElementGeometry(Div *div);
+  std::unique_ptr<PhysicalFragment>
+  CalculateElementGeometry(Div *div, const GeometryConstraints &constrains);
 
 private:
   // Получить команду отрисовки одного конкретного элемента
@@ -51,6 +56,9 @@ private:
                           float offset_y);
 
   DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
+
+  // ViewPort
+  float viewport_width = 1280.0f;
 };
 
 } // namespace webplatform

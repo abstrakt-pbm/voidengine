@@ -26,7 +26,8 @@ TEST(MarginTest, AppliesTopAndLeftMarginToChild) {
   root.AddChild(std::make_unique<Div>(child_style));
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&root);
+  GeometryConstraints constrains = {.max_width = 720.0f};
+  auto fragment = painter.CalculateElementGeometry(&root, constrains);
 
   ASSERT_NE(fragment, nullptr);
   ASSERT_EQ(fragment->child_fragments_.size(), 1);
@@ -58,7 +59,9 @@ TEST(MarginTest, VerticalMarginsAffectSiblingPosition) {
   root.AddChild(std::make_unique<Div>(second_style));
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&root);
+
+  GeometryConstraints constrains = {.max_width = 720.0f};
+  auto fragment = painter.CalculateElementGeometry(&root, constrains);
 
   ASSERT_NE(fragment, nullptr);
   ASSERT_EQ(fragment->child_fragments_.size(), 2);
@@ -98,7 +101,8 @@ TEST(MarginTest, NestedMarginIsRelativeToParentContentArea) {
   root.AddChild(std::make_unique<Div>(child_style));
 
   PainterEngine painter;
-  auto fragment = painter.CalculateElementGeometry(&root);
+  GeometryConstraints constrains = {.max_width = 720.0f};
+  auto fragment = painter.CalculateElementGeometry(&root, constrains);
 
   ASSERT_NE(fragment, nullptr);
   ASSERT_EQ(fragment->child_fragments_.size(), 1);
