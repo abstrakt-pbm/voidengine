@@ -13,6 +13,9 @@ public:
   // под чертой
   float font_descent = 4.0f;
 
+  float text_width = 0.0f;
+  float text_height = 0.0f;
+
   // расстояние между глифами
   float glyph_advance = 8.0f;
   std::string data;

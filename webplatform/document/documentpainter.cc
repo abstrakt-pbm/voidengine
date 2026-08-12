@@ -223,6 +223,10 @@ PainterEngine::CalculateDivGeometry(const Div *div,
       current_y_cursor = child_physical_fragment->y_ +
                          child_physical_fragment->height_ +
                          margin.margin_bottom;
+    } else if (TextElement *child_div_elem =
+                   dynamic_cast<TextElement *>(child_div)) {
+      current_y_cursor =
+          child_physical_fragment->y_ + child_physical_fragment->height_;
     }
     fragment->AddChild(std::move(child_physical_fragment));
   }
@@ -256,8 +260,9 @@ PainterEngine::CalculateTextGeometry(const TextElement *text_element,
   float baseline = text_element->font_ascent;
 
   std::unique_ptr<TextPhysicalFragment> text_fragment =
-      std::make_unique<TextPhysicalFragment>(0, 0, text_height, text_width,
-                                             baseline, text_element);
+      std::make_unique<TextPhysicalFragment>(0, 0, text_element->text_height,
+                                             text_element->text_width, baseline,
+                                             text_element);
   float cursor_y = baseline - text_element->glyph_advance;
   float cursor_x = 0.0f;
 
