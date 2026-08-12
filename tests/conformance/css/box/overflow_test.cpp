@@ -20,11 +20,10 @@ TEST(OverflowTest, VisibleDoesNotCreateClipCommand) {
   Style child_style(500.0f, 200.0f, Style::Colour::GREEN);
   root.AddChild(std::make_unique<Div>(child_style));
 
-  std::vector<Div> divs;
-  divs.push_back(std::move(root));
-
   PainterEngine painter;
-  DisplayList commands = painter.Paint(divs);
+  GeometryEngine geometry_engine;
+  DisplayList commands =
+      painter.Paint(geometry_engine.CalculateDocumentGeometry(root).get());
 
   bool has_clip_command = false;
 
@@ -46,11 +45,10 @@ TEST(OverflowTest, HiddenCreatesClipCommand) {
   Style child_style(500.0f, 200.0f, Style::Colour::GREEN);
   root.AddChild(std::make_unique<Div>(child_style));
 
-  std::vector<Div> divs;
-  divs.push_back(std::move(root));
-
   PainterEngine painter;
-  DisplayList commands = painter.Paint(divs);
+  GeometryEngine geometry_engine;
+  DisplayList commands =
+      painter.Paint(geometry_engine.CalculateDocumentGeometry(root).get());
 
   const ClipCommand *clip = nullptr;
 
@@ -102,11 +100,10 @@ TEST(OverflowTest, NestedClipRestoresParentClip) {
   root.AddChild(std::move(child));
   root.AddChild(std::make_unique<Div>(sibling_style));
 
-  std::vector<Div> divs;
-  divs.push_back(std::move(root));
-
   PainterEngine painter;
-  DisplayList commands = painter.Paint(divs);
+  GeometryEngine geometry_engine;
+  DisplayList commands =
+      painter.Paint(geometry_engine.CalculateDocumentGeometry(root).get());
 
   std::vector<const ClipCommand *> clip_commands;
   size_t reset_count = 0;

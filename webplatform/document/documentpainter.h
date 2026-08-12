@@ -60,39 +60,40 @@ using RenderingCommand =
 
 using DisplayList = std::vector<RenderingCommand>;
 
+// Работает исключительно с DomNode
 class GeometryEngine {
 public:
   std::unique_ptr<PhysicalFragment>
-  CalculateDocumentGeometry(std::vector<Div> &divs);
+  CalculateDocumentGeometry(const DomNode &dom_node);
+
   std::unique_ptr<PhysicalFragment>
   CalculateElementGeometry(const DomNode &dom_node,
                            const GeometryConstraints &constrains);
-
-private:
   std::unique_ptr<PhysicalFragment>
   CalculateTextGeometry(const TextElement *text_element,
                         const GeometryConstraints &constrains);
-
   std::unique_ptr<PhysicalFragment>
   CalculateDivGeometry(const Div *div, const GeometryConstraints &constrains);
 
   float viewport_width = 1280.0f;
 };
 
+// Работает исключительно с PhysicalFragment
 class PainterEngine {
 public:
-  DisplayList Paint(std::vector<Div> &divs);
+  DisplayList Paint(const PhysicalFragment *fragment);
 
-  DisplayList PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
-                          float offset_y);
+  DisplayList PaintFragment(const PhysicalFragment *fragment, float offset_x,
+                            float offset_y);
 
+  DisplayList PaintDiv(const PhysicalFragment *fragment, float offset_x,
+                       float offset_y);
   DisplayList PaintText(const TextPhysicalFragment *fragment, float offset_x,
                         float offset_y);
   DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
 
   // ViewPort
   std::stack<ClipCommand> clip_command_stack_;
-  GeometryEngine geometry_engine;
 };
 
 } // namespace webplatform

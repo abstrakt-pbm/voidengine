@@ -1,5 +1,6 @@
 #include "document/div.h"
 #include "document/documentpainter.h"
+#include "document/physicalfragment.h"
 #include "document/style.h"
 #include "document/textelement.h"
 
@@ -11,7 +12,6 @@
 #include <memory>
 #include <type_traits>
 #include <variant>
-#include <vector>
 
 namespace {
 
@@ -268,16 +268,15 @@ int main(int argc, char **argv) {
   root_div.AddChild(std::move(child_1));
   root_div.AddChild(std::move(child_2));
 
-  std::vector<ve::webplatform::Div> divs;
-  divs.push_back(std::move(root_div));
-
   //
   // Layout + Paint.
   //
   // Страница статическая, поэтому пока считаем display list один раз.
   //
 
-  auto command_list = painter_engine.Paint(divs);
+  ve::webplatform::GeometryEngine geometry_engine;
+  auto root_geometry = geometry_engine.CalculateDocumentGeometry(root_div);
+  auto command_list = painter_engine.Paint(root_geometry.get());
 
   //
   // Window + renderer.

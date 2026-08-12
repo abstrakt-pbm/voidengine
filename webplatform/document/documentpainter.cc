@@ -10,25 +10,12 @@
 namespace ve {
 namespace webplatform {
 
-DisplayList PainterEngine::Paint(std::vector<Div> &divs) {
-  float cursor_y = 0.0f;
-  float cursor_x = 0.0f;
+DisplayList PainterEngine::Paint(const PhysicalFragment *fragment) {
   DisplayList commands;
+  DisplayList dom_root_commmands = PaintFragment(fragment, 0, 0);
 
-  auto document_geometry = geometry_engine.CalculateDocumentGeometry(divs);
-  for (size_t i = 0; i < document_geometry->child_fragments_.size(); ++i) {
-    float local_cursor_y = cursor_y;
-    float local_cursor_x = cursor_x;
-
-    auto child_fragment = document_geometry->child_fragments_[i].get();
-    DisplayList child_commands;
-
-    child_commands =
-        PaintOneDiv(child_fragment, local_cursor_x, local_cursor_y);
-    commands.insert(commands.end(), child_commands.begin(),
-                    child_commands.end());
-    cursor_y += child_fragment->height_;
-  }
+  commands.insert(commands.end(), dom_root_commmands.begin(),
+                  dom_root_commmands.end());
   return commands;
 }
 
@@ -61,8 +48,23 @@ PainterEngine::CalculateRenderCommands(const PhysicalFragment &fragment) {
   return DisplayList{border_command, render_command};
 }
 
-DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
-                                       float offset_x, float offset_y) {
+DisplayList PainterEngine::PaintFragment(const PhysicalFragment *fragment,
+                                         float offset_x, float offset_y) {
+  if (!fragment) {
+    std::cout << "PhysicalFragment is null" << std::endl;
+    return DisplayList();
+  }
+
+  if (auto *text_elem = dynamic_cast<const TextPhysicalFragment *>(fragment)) {
+    return PaintText(text_elem, offset_x, offset_y);
+  } else {
+    return PaintDiv(fragment, offset_x, offset_y);
+  }
+  return DisplayList();
+}
+
+DisplayList PainterEngine::PaintDiv(const PhysicalFragment *fragment,
+                                    float offset_x, float offset_y) {
   if (fragment == nullptr) {
     return DisplayList();
   }
@@ -115,14 +117,8 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
     float child_cursor_x = cursor_x;
     float child_cursor_y = cursor_y;
 
-    DisplayList child_commands;
-    if (const auto *text_fragment =
-            dynamic_cast<TextPhysicalFragment *>(child_fragment)) {
-      child_commands = PaintText(text_fragment, child_cursor_x, child_cursor_y);
-    } else {
-      child_commands =
-          PaintOneDiv(child_fragment, child_cursor_x, child_cursor_y);
-    }
+    DisplayList child_commands =
+        PaintFragment(child_fragment, child_cursor_x, child_cursor_y);
 
     commands.insert(commands.end(), child_commands.begin(),
                     child_commands.end());
@@ -273,25 +269,13 @@ GeometryEngine::CalculateDivGeometry(const Div *div,
   return fragment;
 }
 std::unique_ptr<PhysicalFragment>
-GeometryEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
-
-  auto root_physical_fragment =
-      std::make_unique<PhysicalFragment>(0, 0, 0, 0, nullptr);
-  float root_h = 0.0f;
-  float max_w = 0.0f;
-  for (size_t i = 0; i < divs.size(); ++i) {
-    const DomNode &root_div = divs[i];
+GeometryEngine::CalculateDocumentGeometry(const DomNode &dom_node) {
+  if (const auto *root_div_ptr = dynamic_cast<const Div *>(&dom_node)) {
+    const Div &root_div = *root_div_ptr;
     GeometryConstraints geometry_constrains = {.max_width = viewport_width};
-    auto child_geom = CalculateElementGeometry(root_div, geometry_constrains);
-    root_h += child_geom->height_;
-    if (max_w < child_geom->width_) {
-      max_w = child_geom->width_;
-    }
-    root_physical_fragment->AddChild(std::move(child_geom));
-  };
-  root_physical_fragment->height_ = root_h;
-  root_physical_fragment->width_ = max_w;
-  return root_physical_fragment;
+    return CalculateElementGeometry(root_div, geometry_constrains);
+  }
+  return nullptr;
 }
 } // namespace webplatform
 } // namespace ve
