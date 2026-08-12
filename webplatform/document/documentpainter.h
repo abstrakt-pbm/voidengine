@@ -60,21 +60,29 @@ using RenderingCommand =
 
 using DisplayList = std::vector<RenderingCommand>;
 
-class PainterEngine {
+class GeometryEngine {
 public:
-  DisplayList Paint(std::vector<Div> &divs);
-
   std::unique_ptr<PhysicalFragment>
   CalculateDocumentGeometry(std::vector<Div> &divs);
-
   std::unique_ptr<PhysicalFragment>
   CalculateElementGeometry(const DomNode &dom_node,
                            const GeometryConstraints &constrains);
 
 private:
-  // Получить команду отрисовки одного конкретного элемента
-  // тут с курсором только вопрос аккумуляции локальных координат, margine
-  // padding надо делать на этапе расчёта геометрии
+  std::unique_ptr<PhysicalFragment>
+  CalculateTextGeometry(const TextElement *text_element,
+                        const GeometryConstraints &constrains);
+
+  std::unique_ptr<PhysicalFragment>
+  CalculateDivGeometry(const Div *div, const GeometryConstraints &constrains);
+
+  float viewport_width = 1280.0f;
+};
+
+class PainterEngine {
+public:
+  DisplayList Paint(std::vector<Div> &divs);
+
   DisplayList PaintOneDiv(const PhysicalFragment *fragment, float offset_x,
                           float offset_y);
 
@@ -82,15 +90,9 @@ private:
                         float offset_y);
   DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
 
-  std::unique_ptr<PhysicalFragment>
-  CalculateTextGeometry(const TextElement *text_element,
-                        const GeometryConstraints &constrains);
-
-  std::unique_ptr<PhysicalFragment>
-  CalculateDivGeometry(const Div *div, const GeometryConstraints &constrains);
   // ViewPort
-  float viewport_width = 1280.0f;
   std::stack<ClipCommand> clip_command_stack_;
+  GeometryEngine geometry_engine;
 };
 
 } // namespace webplatform

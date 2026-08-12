@@ -15,7 +15,7 @@ DisplayList PainterEngine::Paint(std::vector<Div> &divs) {
   float cursor_x = 0.0f;
   DisplayList commands;
 
-  auto document_geometry = CalculateDocumentGeometry(divs);
+  auto document_geometry = geometry_engine.CalculateDocumentGeometry(divs);
   for (size_t i = 0; i < document_geometry->child_fragments_.size(); ++i) {
     float local_cursor_y = cursor_y;
     float local_cursor_x = cursor_x;
@@ -59,28 +59,6 @@ PainterEngine::CalculateRenderCommands(const PhysicalFragment &fragment) {
     render_command.b = 255;
   }
   return DisplayList{border_command, render_command};
-}
-
-std::unique_ptr<PhysicalFragment>
-PainterEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
-
-  auto root_physical_fragment =
-      std::make_unique<PhysicalFragment>(0, 0, 0, 0, nullptr);
-  float root_h = 0.0f;
-  float max_w = 0.0f;
-  for (size_t i = 0; i < divs.size(); ++i) {
-    const DomNode &root_div = divs[i];
-    GeometryConstraints geometry_constrains = {.max_width = viewport_width};
-    auto child_geom = CalculateElementGeometry(root_div, geometry_constrains);
-    root_h += child_geom->height_;
-    if (max_w < child_geom->width_) {
-      max_w = child_geom->width_;
-    }
-    root_physical_fragment->AddChild(std::move(child_geom));
-  };
-  root_physical_fragment->height_ = root_h;
-  root_physical_fragment->width_ = max_w;
-  return root_physical_fragment;
 }
 
 DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
@@ -160,9 +138,35 @@ DisplayList PainterEngine::PaintOneDiv(const PhysicalFragment *fragment,
   return commands;
 }
 
-std::unique_ptr<PhysicalFragment>
-PainterEngine::CalculateElementGeometry(const DomNode &dom_node,
-                                        const GeometryConstraints &constrains) {
+DisplayList PainterEngine::PaintText(const TextPhysicalFragment *fragment,
+                                     float offset_x, float offset_y) {
+  DisplayList commands;
+
+  if (fragment == nullptr) {
+    return commands;
+  }
+
+  const TextElement *text_element = fragment->owner_;
+
+  if (text_element == nullptr) {
+    return commands;
+  }
+
+  DrawTextCommand command;
+
+  command.x = offset_x + fragment->x_;
+  command.baseline_y = offset_y + fragment->y_ + fragment->baseline_;
+
+  command.font_size = text_element->font_size;
+  command.text = text_element->data;
+
+  commands.push_back(std::move(command));
+
+  return commands;
+}
+
+std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateElementGeometry(
+    const DomNode &dom_node, const GeometryConstraints &constrains) {
   if (auto *divc = dynamic_cast<const Div *>(&dom_node)) {
     Div *div = const_cast<Div *>(divc);
     return CalculateDivGeometry(div, constrains);
@@ -173,8 +177,33 @@ PainterEngine::CalculateElementGeometry(const DomNode &dom_node,
 }
 
 std::unique_ptr<PhysicalFragment>
-PainterEngine::CalculateDivGeometry(const Div *div,
-                                    const GeometryConstraints &constrains) {
+GeometryEngine::CalculateTextGeometry(const TextElement *text_element,
+                                      const GeometryConstraints &constrains) {
+  if (!text_element) {
+    std::cout << "TextElement is null" << std::endl;
+    return nullptr;
+  }
+  // x,y, width, height прямоугольника
+  // baseline вдоль которой будет располагаться глифы
+  // Глифы в порядке отрисовки
+
+  float text_height = text_element->font_ascent + text_element->font_descent;
+  float text_width = text_element->data.size() * text_element->glyph_advance;
+  float baseline = text_element->font_ascent;
+
+  std::unique_ptr<TextPhysicalFragment> text_fragment =
+      std::make_unique<TextPhysicalFragment>(0, 0, text_element->text_height,
+                                             text_element->text_width, baseline,
+                                             text_element);
+  float cursor_y = baseline - text_element->glyph_advance;
+  float cursor_x = 0.0f;
+
+  return text_fragment;
+}
+
+std::unique_ptr<PhysicalFragment>
+GeometryEngine::CalculateDivGeometry(const Div *div,
+                                     const GeometryConstraints &constrains) {
   if (div == nullptr) {
     std::cout << "div is null" << std::endl;
     return nullptr;
@@ -243,58 +272,26 @@ PainterEngine::CalculateDivGeometry(const Div *div,
 
   return fragment;
 }
-
 std::unique_ptr<PhysicalFragment>
-PainterEngine::CalculateTextGeometry(const TextElement *text_element,
-                                     const GeometryConstraints &constrains) {
-  if (!text_element) {
-    std::cout << "TextElement is null" << std::endl;
-    return nullptr;
-  }
-  // x,y, width, height прямоугольника
-  // baseline вдоль которой будет располагаться глифы
-  // Глифы в порядке отрисовки
+GeometryEngine::CalculateDocumentGeometry(std::vector<Div> &divs) {
 
-  float text_height = text_element->font_ascent + text_element->font_descent;
-  float text_width = text_element->data.size() * text_element->glyph_advance;
-  float baseline = text_element->font_ascent;
-
-  std::unique_ptr<TextPhysicalFragment> text_fragment =
-      std::make_unique<TextPhysicalFragment>(0, 0, text_element->text_height,
-                                             text_element->text_width, baseline,
-                                             text_element);
-  float cursor_y = baseline - text_element->glyph_advance;
-  float cursor_x = 0.0f;
-
-  return text_fragment;
+  auto root_physical_fragment =
+      std::make_unique<PhysicalFragment>(0, 0, 0, 0, nullptr);
+  float root_h = 0.0f;
+  float max_w = 0.0f;
+  for (size_t i = 0; i < divs.size(); ++i) {
+    const DomNode &root_div = divs[i];
+    GeometryConstraints geometry_constrains = {.max_width = viewport_width};
+    auto child_geom = CalculateElementGeometry(root_div, geometry_constrains);
+    root_h += child_geom->height_;
+    if (max_w < child_geom->width_) {
+      max_w = child_geom->width_;
+    }
+    root_physical_fragment->AddChild(std::move(child_geom));
+  };
+  root_physical_fragment->height_ = root_h;
+  root_physical_fragment->width_ = max_w;
+  return root_physical_fragment;
 }
-
-DisplayList PainterEngine::PaintText(const TextPhysicalFragment *fragment,
-                                     float offset_x, float offset_y) {
-  DisplayList commands;
-
-  if (fragment == nullptr) {
-    return commands;
-  }
-
-  const TextElement *text_element = fragment->owner_;
-
-  if (text_element == nullptr) {
-    return commands;
-  }
-
-  DrawTextCommand command;
-
-  command.x = offset_x + fragment->x_;
-  command.baseline_y = offset_y + fragment->y_ + fragment->baseline_;
-
-  command.font_size = text_element->font_size;
-  command.text = text_element->data;
-
-  commands.push_back(std::move(command));
-
-  return commands;
-}
-
 } // namespace webplatform
 } // namespace ve
