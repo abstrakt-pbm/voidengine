@@ -151,51 +151,43 @@ std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateElementGeometry(
     const DomNode &dom_node, const GeometryConstraints &constrains) {
   if (auto *divc = dynamic_cast<const Div *>(&dom_node)) {
     Div *div = const_cast<Div *>(divc);
-    return CalculateDivGeometry(div, constrains);
+    return CalculateDivGeometry(*div, constrains);
   } else if (auto *text = dynamic_cast<const TextElement *>(&dom_node)) {
-    return CalculateTextGeometry(text, constrains);
+    return CalculateTextGeometry(*text, constrains);
   }
   return nullptr;
 }
 
 std::unique_ptr<PhysicalFragment>
-GeometryEngine::CalculateTextGeometry(const TextElement *text_element,
+GeometryEngine::CalculateTextGeometry(const TextElement &text_element,
                                       const GeometryConstraints &constrains) {
-  if (!text_element) {
-    std::cout << "TextElement is null" << std::endl;
-    return nullptr;
-  }
   // x,y, width, height прямоугольника
   // baseline вдоль которой будет располагаться глифы
   // Глифы в порядке отрисовки
 
-  float text_height = text_element->font_ascent + text_element->font_descent;
-  float text_width = text_element->data.size() * text_element->glyph_advance;
-  float baseline = text_element->font_ascent;
+  float text_height = text_element.font_ascent + text_element.font_descent;
+  float text_width = text_element.data.size() * text_element.glyph_advance;
+  float baseline = text_element.font_ascent;
 
   std::unique_ptr<TextPhysicalFragment> text_fragment =
-      std::make_unique<TextPhysicalFragment>(0, 0, text_element->text_height,
-                                             text_element->text_width, baseline,
-                                             text_element);
-  float cursor_y = baseline - text_element->glyph_advance;
+      std::make_unique<TextPhysicalFragment>(0, 0, text_element.text_height,
+                                             text_element.text_width, baseline,
+                                             &text_element);
+  float cursor_y = baseline - text_element.glyph_advance;
   float cursor_x = 0.0f;
 
   return text_fragment;
 }
 
 std::unique_ptr<PhysicalFragment>
-GeometryEngine::CalculateDivGeometry(const Div *div,
+GeometryEngine::CalculateDivGeometry(const Div &div,
                                      const GeometryConstraints &constrains) {
-  if (div == nullptr) {
-    std::cout << "div is null" << std::endl;
-    return nullptr;
-  }
-  const Style &div_style = div->GetStyle();
+  const Style &div_style = div.GetStyle();
   const Padding &div_paddings = div_style.GetPadding();
   const Margin &div_margins = div_style.GetMargin();
 
   auto fragment = std::make_unique<BoxPhysicalFragment>(
-      0, 0, div_style.Height(), div_style.Width(), div);
+      0, 0, div_style.Height(), div_style.Width(), &div);
 
   float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
   float current_y_cursor = div_paddings.paddig_top + div_style.border_width;
@@ -213,8 +205,8 @@ GeometryEngine::CalculateDivGeometry(const Div *div,
                                    2 * div_style.border_width;
   // div layout
   // layout алгоритмы нужно вынести отдельно
-  for (size_t i = 0; i < div->childs_.size(); ++i) {
-    auto child_div = div->childs_[i].get();
+  for (size_t i = 0; i < div.childs_.size(); ++i) {
+    auto child_div = div.childs_[i].get();
     const DomNode &child_dom_node = *child_div;
     GeometryConstraints child_geometry_constrains = {
         .max_width = parent_content_box_width};

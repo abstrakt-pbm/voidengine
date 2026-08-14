@@ -73,10 +73,10 @@ public:
   CalculateElementGeometry(const DomNode &dom_node,
                            const GeometryConstraints &constrains);
   std::unique_ptr<PhysicalFragment>
-  CalculateTextGeometry(const TextElement *text_element,
+  CalculateTextGeometry(const TextElement &text_element,
                         const GeometryConstraints &constrains);
   std::unique_ptr<PhysicalFragment>
-  CalculateDivGeometry(const Div *div, const GeometryConstraints &constrains);
+  CalculateDivGeometry(const Div &div, const GeometryConstraints &constrains);
 
   float viewport_width = 1280.0f;
 };

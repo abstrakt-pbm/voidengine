@@ -83,5 +83,49 @@ TEST(TextLayoutTest, TextAdvancesVerticalFlow) {
   EXPECT_FLOAT_EQ(block_fragment->y_, 30.0f);
 }
 
+TEST(TextLayoutTest, TextContributesToAutoParentHeight) {
+  Style root_style(200.0f, 0.0f, Style::Colour::RED);
+
+  root_style.width_mode_ = Style::WidthMode::FIXED;
+  root_style.height_mode_ = Style::HeightMode::AUTO;
+
+  Div root(root_style);
+
+  // Метрики задаём вручную: этот тест проверяет layout,
+  // а не SDL_ttf.
+  auto text = std::make_unique<TextElement>();
+
+  text->data = "Hello";
+  text->font_size = 16.0f;
+
+  text->text_width = 40.0f;
+  text->text_height = 20.0f;
+
+  text->font_ascent = 15.0f;
+  text->font_descent = 5.0f;
+
+  root.AddChild(std::move(text));
+
+  GeometryEngine geometry_engine;
+
+  GeometryConstraints constraints = {
+      .max_width = 720.0f,
+  };
+
+  auto fragment = geometry_engine.CalculateElementGeometry(root, constraints);
+
+  ASSERT_NE(fragment, nullptr);
+  ASSERT_EQ(fragment->child_fragments_.size(), 1);
+
+  const auto &text_fragment = fragment->child_fragments_[0];
+
+  // Текст действительно имеет заданную layout-высоту.
+  EXPECT_FLOAT_EQ(text_fragment->y_, 0.0f);
+  EXPECT_FLOAT_EQ(text_fragment->height_, 20.0f);
+
+  // height:auto родителя должна включать высоту текста.
+  EXPECT_FLOAT_EQ(fragment->height_, 20.0f);
+}
+
 } // namespace webplatform
 } // namespace ve
