@@ -31,10 +31,6 @@ void AppendFragment(const ve::webplatform::PhysicalFragment &fragment,
 namespace ve {
 namespace webplatform {
 
-PhysicalFragment::PhysicalFragment(float x, float y, float height, float width,
-                                   const Div *owner)
-    : x_(x), y_(y), height_(height), width_(width), owner_(owner) {}
-
 PhysicalFragment::PhysicalFragment(float x, float y, float height, float width)
     : x_(x), y_(y), height_(height), width_(width) {}
 
@@ -49,14 +45,15 @@ std::string PhysicalFragment::ToString() const {
   return stream.str();
 }
 
+BoxPhysicalFragment::BoxPhysicalFragment(float x, float y, float height,
+                                         float width, const Div *owner)
+    : PhysicalFragment(x, y, height, width), owner_(owner) {}
+
 TextPhysicalFragment::TextPhysicalFragment(float x, float y, float height,
                                            float width, float baseline,
                                            const TextElement *owner)
-    : PhysicalFragment(x, y, height, width) {
-
-  baseline_ = baseline;
-  owner_ = owner;
-}
+    : PhysicalFragment(x, y, height, width), baseline_(baseline),
+      owner_(owner) {}
 
 } // namespace webplatform
 } // namespace ve

@@ -23,7 +23,7 @@ TEST(OverflowTest, VisibleDoesNotCreateClipCommand) {
   PainterEngine painter;
   GeometryEngine geometry_engine;
   DisplayList commands =
-      painter.Paint(geometry_engine.CalculateDocumentGeometry(root).get());
+      painter.Paint(*geometry_engine.CalculateDocumentGeometry(root).get());
 
   bool has_clip_command = false;
 
@@ -48,7 +48,7 @@ TEST(OverflowTest, HiddenCreatesClipCommand) {
   PainterEngine painter;
   GeometryEngine geometry_engine;
   DisplayList commands =
-      painter.Paint(geometry_engine.CalculateDocumentGeometry(root).get());
+      painter.Paint(*geometry_engine.CalculateDocumentGeometry(root).get());
 
   const ClipCommand *clip = nullptr;
 
@@ -103,7 +103,7 @@ TEST(OverflowTest, NestedClipRestoresParentClip) {
   PainterEngine painter;
   GeometryEngine geometry_engine;
   DisplayList commands =
-      painter.Paint(geometry_engine.CalculateDocumentGeometry(root).get());
+      painter.Paint(*geometry_engine.CalculateDocumentGeometry(root).get());
 
   std::vector<const ClipCommand *> clip_commands;
   size_t reset_count = 0;

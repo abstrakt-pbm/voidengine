@@ -61,6 +61,9 @@ using RenderingCommand =
 using DisplayList = std::vector<RenderingCommand>;
 
 // Работает исключительно с DomNode
+//
+// Текущие ответственности: Формирование геометрии Dom узлов
+// Данные о вьюпорте
 class GeometryEngine {
 public:
   std::unique_ptr<PhysicalFragment>
@@ -79,20 +82,20 @@ public:
 };
 
 // Работает исключительно с PhysicalFragment
+//
+// Зоны ответственности Формирование комманд отрисовки
 class PainterEngine {
 public:
-  DisplayList Paint(const PhysicalFragment *fragment);
-
-  DisplayList PaintFragment(const PhysicalFragment *fragment, float offset_x,
+  DisplayList Paint(const PhysicalFragment &fragment);
+  DisplayList PaintFragment(const PhysicalFragment &fragment, float offset_x,
                             float offset_y);
-
-  DisplayList PaintDiv(const PhysicalFragment *fragment, float offset_x,
+  DisplayList PaintDiv(const BoxPhysicalFragment &fragment, float offset_x,
                        float offset_y);
-  DisplayList PaintText(const TextPhysicalFragment *fragment, float offset_x,
+  DisplayList PaintText(const TextPhysicalFragment &fragment, float offset_x,
                         float offset_y);
-  DisplayList CalculateRenderCommands(const PhysicalFragment &fragment);
+  DisplayList MakeDrawCommands(const BoxPhysicalFragment &fragment);
 
-  // ViewPort
+  // Active clipping state during fragment tree traversal.
   std::stack<ClipCommand> clip_command_stack_;
 };
 

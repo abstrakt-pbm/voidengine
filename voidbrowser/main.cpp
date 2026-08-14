@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
 
   ve::webplatform::GeometryEngine geometry_engine;
   auto root_geometry = geometry_engine.CalculateDocumentGeometry(root_div);
-  auto command_list = painter_engine.Paint(root_geometry.get());
+  auto command_list = painter_engine.Paint(*root_geometry);
 
   //
   // Window + renderer.

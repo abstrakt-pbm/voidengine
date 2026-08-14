@@ -9,13 +9,18 @@ namespace webplatform {
 class Div;
 class TextElement;
 
-// Координаты каждого дочернего элемента относительно родителя
+// Представить Dom дерево в наиболее удобном для Paint-ера виде
 class PhysicalFragment {
 public:
-  PhysicalFragment(float x, float y, float height, float width,
-                   const Div *owner);
   PhysicalFragment(float x, float y, float height, float width);
+  PhysicalFragment(const PhysicalFragment &) = delete;
+  PhysicalFragment(PhysicalFragment &&) noexcept = default;
+
   virtual ~PhysicalFragment() = default;
+
+  PhysicalFragment &operator=(const PhysicalFragment &) = delete;
+  PhysicalFragment &operator=(PhysicalFragment &&) noexcept = default;
+
   void AddChild(std::unique_ptr<PhysicalFragment> child_fragment);
 
   float x_ = 0.0f;
@@ -23,17 +28,9 @@ public:
   float height_ = 0.0f;
   float width_ = 0.0f;
 
-  const Div *owner_ = nullptr;
-
   std::vector<std::unique_ptr<PhysicalFragment>> child_fragments_;
 
   std::string ToString() const;
-};
-
-class GlyphPhysicalFragment : public PhysicalFragment {
-public:
-  GlyphPhysicalFragment(float x, float y, float height, float width,
-                        int glyph_id);
 };
 
 class TextPhysicalFragment : public PhysicalFragment {
@@ -45,8 +42,13 @@ public:
   // формируется из харрактеристик шрифта
   float baseline_ = 0.0F;
   const TextElement *owner_ = nullptr;
+};
 
-private:
+class BoxPhysicalFragment : public PhysicalFragment {
+public:
+  BoxPhysicalFragment(float x, float y, float height, float width,
+                      const Div *owner);
+  const Div *owner_ = nullptr;
 };
 
 } // namespace webplatform

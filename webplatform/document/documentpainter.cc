@@ -10,7 +10,7 @@
 namespace ve {
 namespace webplatform {
 
-DisplayList PainterEngine::Paint(const PhysicalFragment *fragment) {
+DisplayList PainterEngine::Paint(const PhysicalFragment &fragment) {
   DisplayList commands;
   DisplayList dom_root_commmands = PaintFragment(fragment, 0, 0);
 
@@ -20,7 +20,7 @@ DisplayList PainterEngine::Paint(const PhysicalFragment *fragment) {
 }
 
 DisplayList
-PainterEngine::CalculateRenderCommands(const PhysicalFragment &fragment) {
+PainterEngine::MakeDrawCommands(const BoxPhysicalFragment &fragment) {
   FillRectCommand render_command;
   DrawBorderCommand border_command;
   const Div &div = *fragment.owner_;
@@ -48,77 +48,68 @@ PainterEngine::CalculateRenderCommands(const PhysicalFragment &fragment) {
   return DisplayList{border_command, render_command};
 }
 
-DisplayList PainterEngine::PaintFragment(const PhysicalFragment *fragment,
+DisplayList PainterEngine::PaintFragment(const PhysicalFragment &fragment,
                                          float offset_x, float offset_y) {
-  if (!fragment) {
-    std::cout << "PhysicalFragment is null" << std::endl;
-    return DisplayList();
-  }
-
-  if (auto *text_elem = dynamic_cast<const TextPhysicalFragment *>(fragment)) {
-    return PaintText(text_elem, offset_x, offset_y);
-  } else {
-    return PaintDiv(fragment, offset_x, offset_y);
+  if (auto *text_elem = dynamic_cast<const TextPhysicalFragment *>(&fragment)) {
+    return PaintText(*text_elem, offset_x, offset_y);
+  } else if (auto *div_elem =
+                 dynamic_cast<const BoxPhysicalFragment *>(&fragment)) {
+    return PaintDiv(*div_elem, offset_x, offset_y);
   }
   return DisplayList();
 }
 
-DisplayList PainterEngine::PaintDiv(const PhysicalFragment *fragment,
+DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
                                     float offset_x, float offset_y) {
-  if (fragment == nullptr) {
-    return DisplayList();
-  }
-
   DisplayList commands;
 
-  const Div &div = *fragment->owner_;
+  const Div &div = *fragment.owner_;
   Style div_style = div.GetStyle();
 
-  float cursor_x = offset_x + fragment->x_;
-  float cursor_y = offset_y + fragment->y_;
+  float cursor_x = offset_x + fragment.x_;
+  float cursor_y = offset_y + fragment.y_;
 
   if (div_style.overflow_ == Style::Overflow::HIDDEN) {
     ClipCommand clip_command;
     clip_command.x = cursor_x;
     clip_command.y = cursor_y;
-    clip_command.width = fragment->width_ - 2 * div_style.border_width;
-    clip_command.height = fragment->height_ - 2 * div_style.border_width;
+    clip_command.width = fragment.width_ - 2 * div_style.border_width;
+    clip_command.height = fragment.height_ - 2 * div_style.border_width;
     clip_command_stack_.push(clip_command);
     commands.push_back(clip_command);
   }
 
-  if (fragment->owner_) {
-    DisplayList fragment_comands = CalculateRenderCommands(*fragment);
-    for (auto &render_command : fragment_comands) {
-      std::visit(
-          [&](auto &command) {
-            using Command = std::decay_t<decltype(command)>;
+  DisplayList fragment_comands = MakeDrawCommands(fragment);
 
-            if constexpr (std::is_same_v<Command,
-                                         ve::webplatform::FillRectCommand>) {
-              command.x = cursor_x + div_style.border_width;
-              command.y = cursor_y + div_style.border_width;
-            } else if constexpr (std::is_same_v<
-                                     Command,
-                                     ve::webplatform::DrawBorderCommand>) {
-              command.x = cursor_x;
-              command.y = cursor_y;
-            }
-          },
-          render_command);
-    }
+  for (auto &render_command : fragment_comands) {
+    std::visit(
+        [&](auto &command) {
+          using Command = std::decay_t<decltype(command)>;
 
-    commands.insert(commands.end(), fragment_comands.begin(),
-                    fragment_comands.end());
+          if constexpr (std::is_same_v<Command,
+                                       ve::webplatform::FillRectCommand>) {
+            command.x = cursor_x + div_style.border_width;
+            command.y = cursor_y + div_style.border_width;
+          } else if constexpr (std::is_same_v<
+                                   Command,
+                                   ve::webplatform::DrawBorderCommand>) {
+            command.x = cursor_x;
+            command.y = cursor_y;
+          }
+        },
+        render_command);
   }
 
-  for (size_t i = 0; i < fragment->child_fragments_.size(); ++i) {
-    auto child_fragment = fragment->child_fragments_[i].get();
+  commands.insert(commands.end(), fragment_comands.begin(),
+                  fragment_comands.end());
+
+  for (size_t i = 0; i < fragment.child_fragments_.size(); ++i) {
+    auto child_fragment = fragment.child_fragments_[i].get();
     float child_cursor_x = cursor_x;
     float child_cursor_y = cursor_y;
 
     DisplayList child_commands =
-        PaintFragment(child_fragment, child_cursor_x, child_cursor_y);
+        PaintFragment(*child_fragment, child_cursor_x, child_cursor_y);
 
     commands.insert(commands.end(), child_commands.begin(),
                     child_commands.end());
@@ -134,15 +125,10 @@ DisplayList PainterEngine::PaintDiv(const PhysicalFragment *fragment,
   return commands;
 }
 
-DisplayList PainterEngine::PaintText(const TextPhysicalFragment *fragment,
+DisplayList PainterEngine::PaintText(const TextPhysicalFragment &fragment,
                                      float offset_x, float offset_y) {
   DisplayList commands;
-
-  if (fragment == nullptr) {
-    return commands;
-  }
-
-  const TextElement *text_element = fragment->owner_;
+  const TextElement *text_element = fragment.owner_;
 
   if (text_element == nullptr) {
     return commands;
@@ -150,8 +136,8 @@ DisplayList PainterEngine::PaintText(const TextPhysicalFragment *fragment,
 
   DrawTextCommand command;
 
-  command.x = offset_x + fragment->x_;
-  command.baseline_y = offset_y + fragment->y_ + fragment->baseline_;
+  command.x = offset_x + fragment.x_;
+  command.baseline_y = offset_y + fragment.y_ + fragment.baseline_;
 
   command.font_size = text_element->font_size;
   command.text = text_element->data;
@@ -208,12 +194,9 @@ GeometryEngine::CalculateDivGeometry(const Div *div,
   const Padding &div_paddings = div_style.GetPadding();
   const Margin &div_margins = div_style.GetMargin();
 
-  std::unique_ptr<PhysicalFragment> fragment =
-      std::make_unique<PhysicalFragment>(0, 0, div_style.Height(),
-                                         div_style.Width(), div);
+  auto fragment = std::make_unique<BoxPhysicalFragment>(
+      0, 0, div_style.Height(), div_style.Width(), div);
 
-  // div layout
-  // layout алгоритмы нужно вынести отдельно
   float current_x_cursor = div_paddings.paddig_left + div_style.border_width;
   float current_y_cursor = div_paddings.paddig_top + div_style.border_width;
 
@@ -228,6 +211,8 @@ GeometryEngine::CalculateDivGeometry(const Div *div,
   float parent_content_box_width = fragment->width_ - div_paddings.paddig_left -
                                    div_paddings.paddig_right -
                                    2 * div_style.border_width;
+  // div layout
+  // layout алгоритмы нужно вынести отдельно
   for (size_t i = 0; i < div->childs_.size(); ++i) {
     auto child_div = div->childs_[i].get();
     const DomNode &child_dom_node = *child_div;
@@ -268,6 +253,7 @@ GeometryEngine::CalculateDivGeometry(const Div *div,
 
   return fragment;
 }
+
 std::unique_ptr<PhysicalFragment>
 GeometryEngine::CalculateDocumentGeometry(const DomNode &dom_node) {
   if (const auto *root_div_ptr = dynamic_cast<const Div *>(&dom_node)) {
