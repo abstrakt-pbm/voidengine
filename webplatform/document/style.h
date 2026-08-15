@@ -37,6 +37,7 @@ public:
   enum class Overflow { VISIBLE, HIDDEN };
 
   Style(float width, float height, Colour colour);
+  Style() = default;
 
   float Width() const;
   float Height() const;

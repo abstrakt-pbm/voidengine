@@ -10,6 +10,11 @@ set(VEWP_SRC
     document/documentpainter.cc
     document/physicalfragment.cc
     document/style.cc
+
+    html/htmlparser.cc
+    html/htmltoken.cc
+    html/htmltokenizer.cc
+    html/htmltreebuilder.cc
 )
 
 add_library(voidengine_webplatform STATIC
