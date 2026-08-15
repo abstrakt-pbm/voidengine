@@ -225,9 +225,9 @@ int main(int argc, char **argv) {
   // PNG img
   //
   //
-  auto img = std::make_unique<ve::webplatform::ImageElement>(
+  auto chii = std::make_unique<ve::webplatform::ImageElement>(
       160, 120, "/home/pablo/devel/voidengine/voidbrowser/testres/chii.png");
-  root_div.AddChild(std::move(img));
+  root_div.AddChild(std::move(chii));
 
   //
   // Первый child.

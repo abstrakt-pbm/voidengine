@@ -6,6 +6,7 @@ add_executable(voidengine_tests
     conformance/css/box/width_test.cpp
     conformance/css/box/overflow_test.cpp
     conformance/layout/text_test.cpp
+    conformance/layout/image_test.cpp
 )
 
 target_link_libraries(voidengine_tests
