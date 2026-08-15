@@ -188,9 +188,12 @@ GeometryEngine::CalculateTextGeometry(const TextElement &text_element,
           baseline, &text_element);
 
   for (size_t i = 0; i < text_lines_count; ++i) {
+    std::string text_substring =
+        text_element.data.substr(data_cursor, glyphs_in_line);
+    float substring_width = text_substring.size() * text_element.glyph_advance;
+
     text_fragment->text_lines_.push_back(TextLineFragment(
-        0, cursor_y, text_height, constrains.max_width,
-        text_element.data.substr(data_cursor, glyphs_in_line)));
+        0, cursor_y, text_height, substring_width, text_substring));
     data_cursor += glyphs_in_line;
     cursor_y += text_height;
   }

@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
 
   auto text = std::make_unique<ve::webplatform::TextElement>();
 
-  text->data = "Hello VoidEngine BabeFox";
+  text->data = "ABCDEFGH";
   text->font_size = kFontSize;
 
   //

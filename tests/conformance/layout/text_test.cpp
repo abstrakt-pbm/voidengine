@@ -127,5 +127,70 @@ TEST(TextLayoutTest, TextContributesToAutoParentHeight) {
   EXPECT_FLOAT_EQ(fragment->height_, 20.0f);
 }
 
+TEST(TextLayoutTest, WrapsTextByAvailableWidth) {
+  TextElement text;
+
+  text.data = "ABCDEFGH";
+
+  text.font_size = 16.0f;
+  text.font_ascent = 15.0f;
+  text.font_descent = 5.0f;
+
+  // Один символ занимает 10 px.
+  text.glyph_advance = 10.0f;
+
+  GeometryConstraints constraints = {
+      .max_width = 30.0f,
+  };
+
+  GeometryEngine geometry_engine;
+
+  auto fragment = geometry_engine.CalculateTextGeometry(text, constraints);
+
+  ASSERT_NE(fragment, nullptr);
+
+  auto *text_fragment = dynamic_cast<TextPhysicalFragment *>(fragment.get());
+
+  ASSERT_NE(text_fragment, nullptr);
+
+  //
+  // В 30 px помещается 3 символа:
+  //
+  // ABC
+  // DEF
+  // GH
+  //
+
+  ASSERT_EQ(text_fragment->text_lines_.size(), 3);
+
+  EXPECT_EQ(text_fragment->text_lines_[0].payload_, "ABC");
+  EXPECT_EQ(text_fragment->text_lines_[1].payload_, "DEF");
+  EXPECT_EQ(text_fragment->text_lines_[2].payload_, "GH");
+
+  //
+  // line-height = ascent + descent = 20.
+  //
+
+  EXPECT_FLOAT_EQ(text_fragment->text_lines_[0].y_, 0.0f);
+  EXPECT_FLOAT_EQ(text_fragment->text_lines_[1].y_, 20.0f);
+  EXPECT_FLOAT_EQ(text_fragment->text_lines_[2].y_, 40.0f);
+
+  //
+  // Первые две строки занимают всю доступную ширину.
+  // Последняя содержит только два символа.
+  //
+
+  EXPECT_FLOAT_EQ(text_fragment->text_lines_[0].width_, 30.0f);
+  EXPECT_FLOAT_EQ(text_fragment->text_lines_[1].width_, 30.0f);
+  EXPECT_FLOAT_EQ(text_fragment->text_lines_[2].width_, 20.0f);
+
+  //
+  // Общая высота TextPhysicalFragment:
+  // 3 строки * 20 px = 60 px.
+  //
+
+  EXPECT_FLOAT_EQ(text_fragment->height_, 60.0f);
+}
+
 } // namespace webplatform
 } // namespace ve
