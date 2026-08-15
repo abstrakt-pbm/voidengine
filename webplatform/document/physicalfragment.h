@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace ve {
@@ -33,6 +34,13 @@ public:
   std::string ToString() const;
 };
 
+class TextLineFragment : public PhysicalFragment {
+public:
+  TextLineFragment(float x, float y, float height, float width,
+                   std::string payload);
+  std::string payload_;
+};
+
 class TextPhysicalFragment : public PhysicalFragment {
 public:
   TextPhysicalFragment(float x, float y, float height, float width,
@@ -41,6 +49,8 @@ public:
   // offset from begining of fragment y
   // формируется из харрактеристик шрифта
   float baseline_ = 0.0F;
+
+  std::vector<TextLineFragment> text_lines_;
   const TextElement *owner_ = nullptr;
 };
 

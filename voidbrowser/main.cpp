@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
   auto root_styles =
       ve::webplatform::Style(300, 180, ve::webplatform::Style::Colour::RED);
 
-  root_styles.height_mode_ = ve::webplatform::Style::HeightMode::FIXED;
+  root_styles.height_mode_ = ve::webplatform::Style::HeightMode::AUTO;
 
   root_styles.width_mode_ = ve::webplatform::Style::WidthMode::FIXED;
 
@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
 
   auto text = std::make_unique<ve::webplatform::TextElement>();
 
-  text->data = "Hello VoidEngine";
+  text->data = "Hello VoidEngine BabeFox";
   text->font_size = kFontSize;
 
   //

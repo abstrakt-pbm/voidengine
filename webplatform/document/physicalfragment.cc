@@ -55,5 +55,9 @@ TextPhysicalFragment::TextPhysicalFragment(float x, float y, float height,
     : PhysicalFragment(x, y, height, width), baseline_(baseline),
       owner_(owner) {}
 
+TextLineFragment::TextLineFragment(float x, float y, float height, float width,
+                                   std::string payload)
+    : PhysicalFragment(x, y, height, width), payload_(payload) {}
+
 } // namespace webplatform
 } // namespace ve

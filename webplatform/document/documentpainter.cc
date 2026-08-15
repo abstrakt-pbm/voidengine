@@ -134,15 +134,18 @@ DisplayList PainterEngine::PaintText(const TextPhysicalFragment &fragment,
     return commands;
   }
 
-  DrawTextCommand command;
+  for (const auto &text_line : fragment.text_lines_) {
 
-  command.x = offset_x + fragment.x_;
-  command.baseline_y = offset_y + fragment.y_ + fragment.baseline_;
+    DrawTextCommand command;
 
-  command.font_size = text_element->font_size;
-  command.text = text_element->data;
+    command.x = offset_x + text_line.x_;
+    command.baseline_y = offset_y + text_line.y_ + fragment.baseline_;
 
-  commands.push_back(std::move(command));
+    command.font_size = text_element->font_size;
+    command.text = text_line.payload_;
+
+    commands.push_back(command);
+  }
 
   return commands;
 }
@@ -169,12 +172,28 @@ GeometryEngine::CalculateTextGeometry(const TextElement &text_element,
   float text_width = text_element.data.size() * text_element.glyph_advance;
   float baseline = text_element.font_ascent;
 
+  size_t glyphs_in_line =
+      static_cast<size_t>(constrains.max_width / text_element.glyph_advance);
+  glyphs_in_line = std::max<size_t>(1, glyphs_in_line);
+
+  size_t text_lines_count =
+      (text_element.data.size() + glyphs_in_line - 1) / glyphs_in_line;
+
+  float cursor_y = 0.0f;
+  size_t data_cursor = 0;
+
   std::unique_ptr<TextPhysicalFragment> text_fragment =
-      std::make_unique<TextPhysicalFragment>(0, 0, text_element.text_height,
-                                             text_element.text_width, baseline,
-                                             &text_element);
-  float cursor_y = baseline - text_element.glyph_advance;
-  float cursor_x = 0.0f;
+      std::make_unique<TextPhysicalFragment>(
+          0, 0, text_height * text_lines_count, text_element.text_width,
+          baseline, &text_element);
+
+  for (size_t i = 0; i < text_lines_count; ++i) {
+    text_fragment->text_lines_.push_back(TextLineFragment(
+        0, cursor_y, text_height, constrains.max_width,
+        text_element.data.substr(data_cursor, glyphs_in_line)));
+    data_cursor += glyphs_in_line;
+    cursor_y += text_height;
+  }
 
   return text_fragment;
 }
