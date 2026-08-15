@@ -1,6 +1,7 @@
 #pragma once
 
 #include "div.h"
+#include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/textelement.h"
 
@@ -13,6 +14,14 @@ namespace ve {
 namespace webplatform {
 
 struct ResetClipCommand {};
+
+struct DrawImageCommand {
+  float x;
+  float y;
+  float width;
+  float height;
+  std::string path_to_png_img;
+};
 
 struct DrawTextCommand {
   float x;
@@ -56,7 +65,7 @@ struct GeometryConstraints {
 
 using RenderingCommand =
     std::variant<FillRectCommand, DrawBorderCommand, ClipCommand,
-                 ResetClipCommand, DrawTextCommand>;
+                 ResetClipCommand, DrawTextCommand, DrawImageCommand>;
 
 using DisplayList = std::vector<RenderingCommand>;
 
@@ -78,6 +87,10 @@ public:
   std::unique_ptr<PhysicalFragment>
   CalculateDivGeometry(const Div &div, const GeometryConstraints &constrains);
 
+  std::unique_ptr<PhysicalFragment>
+  CalculateImageGeometry(const ImageElement &img,
+                         const GeometryConstraints &constrains);
+
   float viewport_width = 1280.0f;
 };
 
@@ -93,6 +106,9 @@ public:
                        float offset_y);
   DisplayList PaintText(const TextPhysicalFragment &fragment, float offset_x,
                         float offset_y);
+
+  DisplayList PaintImage(const ImagePhysicalFragment &fragment, float offset_x,
+                         float offset_y);
   DisplayList MakeDrawCommands(const BoxPhysicalFragment &fragment);
 
   // Active clipping state during fragment tree traversal.

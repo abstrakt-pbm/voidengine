@@ -59,5 +59,10 @@ TextLineFragment::TextLineFragment(float x, float y, float height, float width,
                                    std::string payload)
     : PhysicalFragment(x, y, height, width), payload_(payload) {}
 
+ImagePhysicalFragment::ImagePhysicalFragment(float x, float y, float height,
+                                             float width,
+                                             std::string path_to_img)
+    : PhysicalFragment(x, y, height, width), path_to_img_(path_to_img) {}
+
 } // namespace webplatform
 } // namespace ve

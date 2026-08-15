@@ -35,6 +35,7 @@
 
 				pkgs.sdl3
 				pkgs.sdl3-ttf
+				pkgs.sdl3-image
 
 				pkgs.gtest
 			];

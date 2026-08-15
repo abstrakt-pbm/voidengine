@@ -1,11 +1,13 @@
 #include "document/div.h"
 #include "document/documentpainter.h"
+#include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/style.h"
 #include "document/textelement.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
 #include <iostream>
@@ -181,7 +183,7 @@ int main(int argc, char **argv) {
 
   auto text = std::make_unique<ve::webplatform::TextElement>();
 
-  text->data = "ABCDEFGH";
+  text->data = "Hello BabeFox | voidengine";
   text->font_size = kFontSize;
 
   //
@@ -219,6 +221,13 @@ int main(int argc, char **argv) {
   text->font_descent = static_cast<float>(-TTF_GetFontDescent(font));
 
   root_div.AddChild(std::move(text));
+  //
+  // PNG img
+  //
+  //
+  auto img = std::make_unique<ve::webplatform::ImageElement>(
+      160, 120, "/home/pablo/devel/voidengine/voidbrowser/testres/chii.png");
+  root_div.AddChild(std::move(img));
 
   //
   // Первый child.
@@ -370,6 +379,29 @@ int main(int argc, char **argv) {
             else if constexpr (std::is_same_v<
                                    Command, ve::webplatform::DrawTextCommand>) {
               DrawText(renderer, font, command);
+            } else if constexpr (std::is_same_v<
+                                     Command,
+                                     ve::webplatform::DrawImageCommand>) {
+              SDL_Texture *texture =
+                  IMG_LoadTexture(renderer, command.path_to_png_img.c_str());
+
+              if (!texture) {
+                SDL_Log("IMG_LoadTexture failed for '%s': %s",
+                        command.path_to_png_img.c_str(), SDL_GetError());
+
+                return;
+              }
+
+              SDL_FRect destination{
+                  .x = command.x,
+                  .y = command.y,
+                  .w = command.width,
+                  .h = command.height,
+              };
+
+              SDL_RenderTexture(renderer, texture, nullptr, &destination);
+
+              SDL_DestroyTexture(texture);
             }
           },
           rendering_command);

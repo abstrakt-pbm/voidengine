@@ -61,5 +61,13 @@ public:
   const Div *owner_ = nullptr;
 };
 
+class ImagePhysicalFragment : public PhysicalFragment {
+public:
+  ImagePhysicalFragment(float x, float y, float height, float width,
+                        std::string path_to_img);
+
+  std::string path_to_img_;
+};
+
 } // namespace webplatform
 } // namespace ve
