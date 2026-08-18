@@ -380,6 +380,7 @@ public:
 
   std::string name_;
 
+  // TODO: переделать в map
   std::vector<HTMLAttribute> attributes_;
 
   TokenType type_ = TokenType::kUninitialized;

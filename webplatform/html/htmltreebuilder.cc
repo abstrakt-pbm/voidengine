@@ -2,6 +2,7 @@
 
 #include "document/div.h"
 #include "document/domnode.h"
+#include "document/imageelement.h"
 #include "document/style.h"
 #include "document/textelement.h"
 #include "htmltoken.h"
@@ -31,7 +32,7 @@ webplatform::Style CreateDefaultDivStyle() {
 HTMLTreeBuilder::HTMLTreeBuilder()
     : tree_root_(std::make_unique<webplatform::DomNode>()) {
   //
-  // Synthetic root всегда находится внизу
+  // Синтетический root всегда находится внизу
   // stack of open elements.
   //
   open_elements_.push(tree_root_.get());
@@ -41,52 +42,50 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
   //
   // StartTag.
   //
-
   if (html_token.Type() == HTMLToken::TokenType::kStartTag) {
     std::unique_ptr<webplatform::DomNode> new_element;
-
     //
     // Пока поддерживаем только <div>.
     //
-
     if (html_token.Tag() == HTMLTag::kDiv) {
       new_element = std::make_unique<webplatform::Div>(CreateDefaultDivStyle());
-    }
+    } else if (html_token.Tag() == HTMLTag::kImg) {
+      // проще перейти с вектора атрибутов на мапу
+      std::string img_source = html_token.attributes_[0].value;
+      std::string width_str = html_token.attributes_[1].value;
+      std::string height_str = html_token.attributes_[2].value;
+      new_element = std::make_unique<webplatform::ImageElement>(
+          std::stoi(width_str), std::stoi(height_str), img_source);
 
+      // image has not closing tag
+      open_elements_.top()->AddChild(std::move(new_element));
+      return;
+    }
     //
     // Unsupported element.
     //
-
     if (!new_element) {
       return;
     }
-
     //
     // Сохраняем non-owning pointer до передачи
     // ownership в DOM tree.
     //
-
     webplatform::DomNode *new_element_ptr = new_element.get();
-
     //
     // Текущий открытый элемент становится parent.
     //
-
     open_elements_.top()->AddChild(std::move(new_element));
-
     //
     // Новый element становится текущим открытым.
     //
-
     open_elements_.push(new_element_ptr);
-
     return;
   }
 
   //
   // Character.
   //
-
   if (html_token.Type() == HTMLToken::TokenType::kCharacter) {
     //
     // Не создаём TextElement непосредственно
@@ -111,7 +110,6 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
   //
   // EndTag.
   //
-
   if (html_token.Type() == HTMLToken::TokenType::kEndTag) {
     //
     // Пока предполагаем гарантированно корректный HTML:
@@ -120,9 +118,8 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
     //   <div></div>
     // </div>
     //
-    // Synthetic root никогда не снимаем со стека.
+    // Синтетический root никогда не снимаем со стека.
     //
-
     if (open_elements_.size() > 1) {
       open_elements_.pop();
     }
@@ -139,7 +136,6 @@ std::unique_ptr<webplatform::DomNode> HTMLTreeBuilder::TakeTree() {
   //
   // Ничего не было построено.
   //
-
   if (tree_root_->childs_.empty()) {
     return nullptr;
   }
@@ -147,9 +143,8 @@ std::unique_ptr<webplatform::DomNode> HTMLTreeBuilder::TakeTree() {
   //
   // Пока VoidEngine ожидает один настоящий root element.
   //
-  // Synthetic DomNode наружу не отдаём.
+  // Синтетический DomNode наружу не отдаём.
   //
-
   return std::move(tree_root_->childs_.front());
 }
 
