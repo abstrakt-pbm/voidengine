@@ -16,7 +16,6 @@ std::unique_ptr<webplatform::DomNode> ParseHTML(std::string raw_html) {
   HTMLTreeBuilder treebuilder;
   std::vector<HTMLToken> html_tokens = tokenizer.Tokenize(raw_html);
   for (auto &html_token : html_tokens) {
-    std::cout << html_token.ToString() << std::endl;
     if (html_token.name_ == "div") {
       html_token.tag_ = HTMLTag::kDiv;
     }
