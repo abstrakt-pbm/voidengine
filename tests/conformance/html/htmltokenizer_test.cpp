@@ -155,4 +155,20 @@ TEST(HTMLTokenizerTest, AcceptsHtmlWhitespaceBetweenAttributes) {
   EXPECT_EQ(start_tag.attributes_[2].value, "100");
 }
 
+TEST(HTMLTokenizerTest, GetsAttributeValueByName) {
+  HTMLTokeniser tokenizer;
+
+  const auto tokens = tokenizer.Tokenize(
+      "<img height=\"100\" src=\"image.png\" width=\"160\">");
+
+  ASSERT_EQ(tokens.size(), 2);
+
+  const HTMLToken &start_tag = tokens[0];
+
+  EXPECT_EQ(start_tag.GetAttributeValue("src"), "image.png");
+  EXPECT_EQ(start_tag.GetAttributeValue("width"), "160");
+  EXPECT_EQ(start_tag.GetAttributeValue("height"), "100");
+  EXPECT_EQ(start_tag.GetAttributeValue("alt"), "");
+}
+
 } // namespace ve::html

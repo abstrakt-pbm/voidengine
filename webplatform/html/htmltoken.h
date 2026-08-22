@@ -368,6 +368,8 @@ public:
 
   void BeginAttribute();
 
+  std::string GetAttributeValue(std::string character) const;
+
   HTMLTag Tag() const;
   TokenType Type() const;
 

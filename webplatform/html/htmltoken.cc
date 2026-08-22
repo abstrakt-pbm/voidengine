@@ -163,5 +163,15 @@ std::string HTMLToken::ToString() const {
 }
 
 HTMLTag HTMLToken::Tag() const { return tag_; }
+
+std::string HTMLToken::GetAttributeValue(std::string character) const {
+  for (const auto &attribute : attributes_) {
+    if (attribute.name == character) {
+      return attribute.value;
+    }
+  }
+  return std::string();
+}
+
 } // namespace html
 } // namespace ve

@@ -51,9 +51,9 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
       new_element = std::make_unique<webplatform::Div>(CreateDefaultDivStyle());
     } else if (html_token.Tag() == HTMLTag::kImg) {
       // проще перейти с вектора атрибутов на мапу
-      std::string img_source = html_token.attributes_[0].value;
-      std::string width_str = html_token.attributes_[1].value;
-      std::string height_str = html_token.attributes_[2].value;
+      std::string img_source = html_token.GetAttributeValue("src");
+      std::string width_str = html_token.GetAttributeValue("width");
+      std::string height_str = html_token.GetAttributeValue("height");
       new_element = std::make_unique<webplatform::ImageElement>(
           std::stoi(width_str), std::stoi(height_str), img_source);
 
