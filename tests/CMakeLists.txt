@@ -7,7 +7,9 @@ add_executable(voidengine_tests
     conformance/css/box/overflow_test.cpp
     conformance/layout/text_test.cpp
     conformance/layout/image_test.cpp
+
     conformance/html/htmlparser_test.cpp
+    conformance/html/htmltokenizer_test.cpp
 )
 
 target_link_libraries(voidengine_tests
