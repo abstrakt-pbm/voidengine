@@ -248,5 +248,37 @@ TEST(OverflowTest, NonIntersectingNestedClipIsEmpty) {
   EXPECT_FLOAT_EQ(clips[1]->height, 0.0f);
 }
 
+TEST(OverflowTest, HiddenClipStartsInsideBorder) {
+  Style root_style(100.0f, 80.0f, Style::Colour::RED);
+  root_style.width_mode_ = Style::WidthMode::FIXED;
+  root_style.height_mode_ = Style::HeightMode::FIXED;
+  root_style.overflow_ = Style::Overflow::HIDDEN;
+  root_style.border_width = 10.0f;
+
+  Div root(root_style);
+
+  PainterEngine painter;
+  GeometryEngine geometry_engine;
+
+  DisplayList commands =
+      painter.Paint(*geometry_engine.CalculateDocumentGeometry(root));
+
+  const ClipCommand *clip = nullptr;
+
+  for (const auto &command : commands) {
+    if (const auto *current_clip = std::get_if<ClipCommand>(&command)) {
+      clip = current_clip;
+      break;
+    }
+  }
+
+  ASSERT_NE(clip, nullptr);
+
+  EXPECT_FLOAT_EQ(clip->x, 10.0f);
+  EXPECT_FLOAT_EQ(clip->y, 10.0f);
+  EXPECT_FLOAT_EQ(clip->width, 80.0f);
+  EXPECT_FLOAT_EQ(clip->height, 60.0f);
+}
+
 } // namespace webplatform
 } // namespace ve

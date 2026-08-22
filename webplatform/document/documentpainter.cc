@@ -93,8 +93,8 @@ DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
 
   if (div_style.overflow_ == Style::Overflow::HIDDEN) {
     ClipCommand clip_command;
-    clip_command.x = cursor_x;
-    clip_command.y = cursor_y;
+    clip_command.x = cursor_x + div_style.border_width;
+    clip_command.y = cursor_y + div_style.border_width;
     clip_command.width = fragment.width_ - 2 * div_style.border_width;
     clip_command.height = fragment.height_ - 2 * div_style.border_width;
 
