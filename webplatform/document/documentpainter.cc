@@ -97,8 +97,15 @@ DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
     clip_command.y = cursor_y;
     clip_command.width = fragment.width_ - 2 * div_style.border_width;
     clip_command.height = fragment.height_ - 2 * div_style.border_width;
-    clip_command_stack_.push(clip_command);
-    commands.push_back(clip_command);
+
+    ClipCommand result_command = clip_command;
+    if (!clip_command_stack_.empty()) {
+      result_command =
+          IntersectClipCommands(clip_command_stack_.top(), clip_command);
+    }
+
+    clip_command_stack_.push(result_command);
+    commands.push_back(result_command);
   }
 
   DisplayList fragment_comands = MakeDrawCommands(fragment);
@@ -145,6 +152,30 @@ DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
     }
   }
   return commands;
+}
+
+ClipCommand
+PainterEngine::IntersectClipCommands(const ClipCommand &current_clip_command,
+                                     const ClipCommand &new_clip_command) {
+  const float left = std::max(current_clip_command.x, new_clip_command.x);
+
+  const float top = std::max(current_clip_command.y, new_clip_command.y);
+
+  const float right =
+      std::min(current_clip_command.x + current_clip_command.width,
+               new_clip_command.x + new_clip_command.width);
+
+  const float bottom =
+      std::min(current_clip_command.y + current_clip_command.height,
+               new_clip_command.y + new_clip_command.height);
+
+  ClipCommand command;
+  command.x = left;
+  command.y = top;
+  command.width = std::max(0.0f, right - left);
+  command.height = std::max(0.0f, bottom - top);
+
+  return command;
 }
 
 DisplayList PainterEngine::PaintText(const TextPhysicalFragment &fragment,

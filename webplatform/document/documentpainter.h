@@ -111,6 +111,9 @@ public:
                          float offset_y);
   DisplayList MakeDrawCommands(const BoxPhysicalFragment &fragment);
 
+  ClipCommand IntersectClipCommands(const ClipCommand &current_clip_command,
+                                    const ClipCommand &new_clip_command);
+
   // Active clipping state during fragment tree traversal.
   std::stack<ClipCommand> clip_command_stack_;
 };

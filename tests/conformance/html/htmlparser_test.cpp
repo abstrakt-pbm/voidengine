@@ -1,5 +1,6 @@
 #include "document/div.h"
 #include "document/imageelement.h"
+#include "document/textelement.h"
 #include "html/htmlparser.h"
 
 #include <gtest/gtest.h>
@@ -57,6 +58,74 @@ TEST(HTMLParserTest, ParsesImageAsVoidElement) {
   //
 
   EXPECT_TRUE(image->childs_.empty());
+}
+
+TEST(HTMLParserTest, PreservesNestedDivStructure) {
+  const std::string html = "<div>"
+                           "A"
+                           "<div>"
+                           "B"
+                           "<div>C</div>"
+                           "</div>"
+                           "D"
+                           "</div>";
+
+  auto root = ParseHTML(html);
+
+  ASSERT_NE(root, nullptr);
+
+  auto *outer_div = dynamic_cast<webplatform::Div *>(root.get());
+  ASSERT_NE(outer_div, nullptr);
+
+  // Ожидаем:
+  //
+  // Div
+  // ├── Text("A")
+  // ├── Div
+  // │   ├── Text("B")
+  // │   └── Div
+  // │       └── Text("C")
+  // └── Text("D")
+  //
+
+  ASSERT_EQ(outer_div->childs_.size(), 3);
+
+  auto *text_a =
+      dynamic_cast<webplatform::TextElement *>(outer_div->childs_[0].get());
+
+  auto *middle_div =
+      dynamic_cast<webplatform::Div *>(outer_div->childs_[1].get());
+
+  auto *text_d =
+      dynamic_cast<webplatform::TextElement *>(outer_div->childs_[2].get());
+
+  ASSERT_NE(text_a, nullptr);
+  ASSERT_NE(middle_div, nullptr);
+  ASSERT_NE(text_d, nullptr);
+
+  EXPECT_EQ(text_a->data, "A");
+  EXPECT_EQ(text_d->data, "D");
+
+  ASSERT_EQ(middle_div->childs_.size(), 2);
+
+  auto *text_b =
+      dynamic_cast<webplatform::TextElement *>(middle_div->childs_[0].get());
+
+  auto *inner_div =
+      dynamic_cast<webplatform::Div *>(middle_div->childs_[1].get());
+
+  ASSERT_NE(text_b, nullptr);
+  ASSERT_NE(inner_div, nullptr);
+
+  EXPECT_EQ(text_b->data, "B");
+
+  ASSERT_EQ(inner_div->childs_.size(), 1);
+
+  auto *text_c =
+      dynamic_cast<webplatform::TextElement *>(inner_div->childs_[0].get());
+
+  ASSERT_NE(text_c, nullptr);
+  EXPECT_EQ(text_c->data, "C");
 }
 
 } // namespace ve::html

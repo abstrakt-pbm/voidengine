@@ -144,5 +144,109 @@ TEST(OverflowTest, NestedClipRestoresParentClip) {
   EXPECT_FLOAT_EQ(clip_commands[2]->height, 180.0f);
 }
 
+TEST(OverflowTest, NestedClipIsIntersectedWithParentClip) {
+  Style root_style(100.0f, 100.0f, Style::Colour::RED);
+  root_style.width_mode_ = Style::WidthMode::FIXED;
+  root_style.height_mode_ = Style::HeightMode::FIXED;
+  root_style.overflow_ = Style::Overflow::HIDDEN;
+
+  Div root(root_style);
+
+  Style child_style(100.0f, 100.0f, Style::Colour::GREEN);
+  child_style.width_mode_ = Style::WidthMode::FIXED;
+  child_style.height_mode_ = Style::HeightMode::FIXED;
+  child_style.overflow_ = Style::Overflow::HIDDEN;
+
+  // Child начинается в (50, 50), поэтому половина его box
+  // находится за пределами root.
+  child_style.SetMargin(Margin(50.0f, 0.0f, 50.0f, 0.0f));
+
+  root.AddChild(std::make_unique<Div>(child_style));
+
+  PainterEngine painter;
+  GeometryEngine geometry_engine;
+
+  DisplayList commands =
+      painter.Paint(*geometry_engine.CalculateDocumentGeometry(root).get());
+
+  std::vector<const ClipCommand *> clip_commands;
+
+  for (const auto &command : commands) {
+    if (const auto *clip = std::get_if<ClipCommand>(&command)) {
+      clip_commands.push_back(clip);
+    }
+  }
+
+  ASSERT_GE(clip_commands.size(), 2);
+
+  // Root:
+  //
+  // (0, 0) ───────────── (100, 0)
+  //   │
+  //   │
+  //   │       child:
+  //   │       (50,50) ───────────── (150,50)
+  //   │          │
+  // (0,100) ─────┼────── (100,100)
+  //              │
+  //              │
+  //           (50,150)
+  //
+  // Пересечение root и child:
+  //
+  // x = 50
+  // y = 50
+  // width = 50
+  // height = 50
+
+  const ClipCommand &root_clip = *clip_commands[0];
+
+  EXPECT_FLOAT_EQ(root_clip.x, 0.0f);
+  EXPECT_FLOAT_EQ(root_clip.y, 0.0f);
+  EXPECT_FLOAT_EQ(root_clip.width, 100.0f);
+  EXPECT_FLOAT_EQ(root_clip.height, 100.0f);
+
+  const ClipCommand &child_clip = *clip_commands[1];
+
+  EXPECT_FLOAT_EQ(child_clip.x, 50.0f);
+  EXPECT_FLOAT_EQ(child_clip.y, 50.0f);
+  EXPECT_FLOAT_EQ(child_clip.width, 50.0f);
+  EXPECT_FLOAT_EQ(child_clip.height, 50.0f);
+}
+
+TEST(OverflowTest, NonIntersectingNestedClipIsEmpty) {
+  Style root_style(100.0f, 100.0f, Style::Colour::RED);
+  root_style.overflow_ = Style::Overflow::HIDDEN;
+
+  Div root(root_style);
+
+  Style child_style(50.0f, 50.0f, Style::Colour::GREEN);
+  child_style.overflow_ = Style::Overflow::HIDDEN;
+
+  // Child полностью справа и снизу от root.
+  child_style.SetMargin(Margin(150.0f, 0.0f, 150.0f, 0.0f));
+
+  root.AddChild(std::make_unique<Div>(child_style));
+
+  GeometryEngine geometry_engine;
+  PainterEngine painter;
+
+  DisplayList commands =
+      painter.Paint(*geometry_engine.CalculateDocumentGeometry(root));
+
+  std::vector<const ClipCommand *> clips;
+
+  for (const auto &command : commands) {
+    if (const auto *clip = std::get_if<ClipCommand>(&command)) {
+      clips.push_back(clip);
+    }
+  }
+
+  ASSERT_GE(clips.size(), 2);
+
+  EXPECT_FLOAT_EQ(clips[1]->width, 0.0f);
+  EXPECT_FLOAT_EQ(clips[1]->height, 0.0f);
+}
+
 } // namespace webplatform
 } // namespace ve
