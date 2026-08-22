@@ -123,4 +123,75 @@ TEST(ImageLayoutTest, ImageContributesToAutoParentHeight) {
   EXPECT_FLOAT_EQ(root_fragment->height_, 40.0f);
 }
 
+TEST(ImagePaintTest, NestedImageUsesGlobalCoordinates) {
+  Style root_style(300.0f, 200.0f, Style::Colour::RED);
+  root_style.border_width = 2.0f;
+
+  root_style.SetPadding(Padding(5.0f, // left
+                                0.0f, // right
+                                7.0f, // top
+                                0.0f  // bottom
+                                ));
+
+  Div root(root_style);
+
+  Style child_style(200.0f, 100.0f, Style::Colour::GREEN);
+  child_style.border_width = 3.0f;
+
+  child_style.SetMargin(Margin(11.0f, // left
+                               0.0f,  // right
+                               13.0f, // top
+                               0.0f   // bottom
+                               ));
+
+  child_style.SetPadding(Padding(17.0f, // left
+                                 0.0f,  // right
+                                 19.0f, // top
+                                 0.0f   // bottom
+                                 ));
+
+  auto child = std::make_unique<Div>(child_style);
+
+  child->AddChild(std::make_unique<ImageElement>(80.0f, 40.0f, "test.png"));
+
+  root.AddChild(std::move(child));
+
+  GeometryEngine geometry_engine;
+  PainterEngine painter;
+
+  auto geometry = geometry_engine.CalculateDocumentGeometry(root);
+  ASSERT_NE(geometry, nullptr);
+
+  DisplayList commands = painter.Paint(*geometry);
+
+  const DrawImageCommand *draw_image = nullptr;
+
+  for (const auto &command : commands) {
+    if (const auto *current = std::get_if<DrawImageCommand>(&command)) {
+      draw_image = current;
+      break;
+    }
+  }
+
+  ASSERT_NE(draw_image, nullptr);
+
+  // Та же цепочка координат:
+  //
+  // root content x = 2 + 5 = 7
+  // child x        = 7 + 11 = 18
+  // image x        = 18 + 3 + 17 = 38
+  //
+  // root content y = 2 + 7 = 9
+  // child y        = 9 + 13 = 22
+  // image y        = 22 + 3 + 19 = 44
+
+  EXPECT_FLOAT_EQ(draw_image->x, 38.0f);
+  EXPECT_FLOAT_EQ(draw_image->y, 44.0f);
+
+  EXPECT_FLOAT_EQ(draw_image->width, 80.0f);
+  EXPECT_FLOAT_EQ(draw_image->height, 40.0f);
+
+  EXPECT_EQ(draw_image->path_to_png_img, "test.png");
+}
+
 } // namespace ve::webplatform
