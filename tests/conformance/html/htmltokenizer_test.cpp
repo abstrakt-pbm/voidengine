@@ -1,10 +1,9 @@
+#include <gtest/gtest.h>
+
 #include "html/htmltoken.h"
 #include "html/htmltokenizer.h"
 
-#include <gtest/gtest.h>
-
 namespace ve::html {
-
 TEST(HTMLTokenizerTest, TokenizesEmptyInputAsEOF) {
   HTMLTokeniser tokenizer;
 
@@ -170,5 +169,4 @@ TEST(HTMLTokenizerTest, GetsAttributeValueByName) {
   EXPECT_EQ(start_tag.GetAttributeValue("height"), "100");
   EXPECT_EQ(start_tag.GetAttributeValue("alt"), "");
 }
-
 } // namespace ve::html

@@ -1,16 +1,15 @@
 #include <gtest/gtest.h>
 
+#include "document/div.h"
+#include "document/style.h"
+#include "rendering/geometryengine.h"
+#include "rendering/painterengine.h"
+
 #include <memory>
 #include <variant>
 #include <vector>
 
-#include "document/div.h"
-#include "document/documentpainter.h"
-#include "document/style.h"
-
-namespace ve {
-namespace webplatform {
-
+namespace ve::webplatform {
 TEST(OverflowTest, VisibleDoesNotCreateClipCommand) {
   Style root_style(150.0f, 50.0f, Style::Colour::RED);
   root_style.overflow_ = Style::Overflow::VISIBLE;
@@ -279,6 +278,4 @@ TEST(OverflowTest, HiddenClipStartsInsideBorder) {
   EXPECT_FLOAT_EQ(clip->width, 80.0f);
   EXPECT_FLOAT_EQ(clip->height, 60.0f);
 }
-
-} // namespace webplatform
-} // namespace ve
+} // namespace ve::webplatform

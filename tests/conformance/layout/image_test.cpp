@@ -1,10 +1,11 @@
+#include <gtest/gtest.h>
+
 #include "document/div.h"
-#include "document/documentpainter.h"
 #include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/style.h"
-
-#include <gtest/gtest.h>
+#include "rendering/geometryengine.h"
+#include "rendering/painterengine.h"
 
 namespace ve::webplatform {
 

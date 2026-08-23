@@ -3,12 +3,10 @@
 #include <memory>
 
 #include "document/div.h"
-#include "document/documentpainter.h"
 #include "document/style.h"
+#include "rendering/geometryengine.h"
 
-namespace ve {
-namespace webplatform {
-
+namespace ve::webplatform {
 TEST(MarginTest, AppliesTopAndLeftMarginToChild) {
   Style root_style(100.0f, 100.0f, Style::Colour::RED);
 
@@ -113,5 +111,4 @@ TEST(MarginTest, NestedMarginIsRelativeToParentContentArea) {
   EXPECT_FLOAT_EQ(child->y_, 1.0f + 10.0f + 4.0f);
 }
 
-} // namespace webplatform
-} // namespace ve
+} // namespace ve::webplatform

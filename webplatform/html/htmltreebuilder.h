@@ -20,6 +20,8 @@ public:
 
 private:
   InsertionMode insertion_mode_ = InsertionMode::kInitialMode;
+
+  // <html>
   std::unique_ptr<webplatform::DomNode> tree_root_;
   std::stack<webplatform::DomNode *> open_elements_;
 };

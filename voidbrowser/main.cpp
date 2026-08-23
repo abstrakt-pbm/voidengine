@@ -1,8 +1,10 @@
-#include "document/documentpainter.h"
 #include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/textelement.h"
 #include "html/htmlparser.h"
+
+#include "rendering/geometryengine.h"
+#include "rendering/painterengine.h"
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>

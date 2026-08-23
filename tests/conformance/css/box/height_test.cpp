@@ -3,12 +3,10 @@
 #include <memory>
 
 #include "document/div.h"
-#include "document/documentpainter.h"
 #include "document/style.h"
+#include "rendering/geometryengine.h"
 
-namespace ve {
-namespace webplatform {
-
+namespace ve::webplatform {
 TEST(HeightTest, FixedHeightUsesStyleHeight) {
   Style style(100.0f, 50.0f, Style::Colour::RED);
   style.height_mode_ = Style::HeightMode::FIXED;
@@ -90,5 +88,4 @@ TEST(HeightTest, EmptyAutoHeightUsesPaddingAndBorder) {
   EXPECT_FLOAT_EQ(fragment->height_, 10.0f);
 }
 
-} // namespace webplatform
-} // namespace ve
+} // namespace ve::webplatform

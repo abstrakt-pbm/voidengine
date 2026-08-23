@@ -1,18 +1,13 @@
 #pragma once
 
-#include "div.h"
-#include "document/imageelement.h"
 #include "document/physicalfragment.h"
-#include "document/textelement.h"
 
 #include <stack>
 #include <string>
 #include <variant>
-#include <vector>
+#include <vector> // Работает исключительно с PhysicalFragment
 
-namespace ve {
-namespace webplatform {
-
+namespace ve::webplatform {
 struct ResetClipCommand {};
 
 struct DrawImageCommand {
@@ -59,43 +54,11 @@ struct DrawBorderCommand {
   float border_width = 0.0f;
 };
 
-struct GeometryConstraints {
-  float max_width = 0.0f;
-};
-
 using RenderingCommand =
     std::variant<FillRectCommand, DrawBorderCommand, ClipCommand,
                  ResetClipCommand, DrawTextCommand, DrawImageCommand>;
 
 using DisplayList = std::vector<RenderingCommand>;
-
-// Работает исключительно с DomNode
-//
-// Текущие ответственности: Формирование геометрии Dom узлов
-// Данные о вьюпорте
-class GeometryEngine {
-public:
-  std::unique_ptr<PhysicalFragment>
-  CalculateDocumentGeometry(const DomNode &dom_node);
-
-  std::unique_ptr<PhysicalFragment>
-  CalculateElementGeometry(const DomNode &dom_node,
-                           const GeometryConstraints &constrains);
-  std::unique_ptr<PhysicalFragment>
-  CalculateTextGeometry(const TextElement &text_element,
-                        const GeometryConstraints &constrains);
-  std::unique_ptr<PhysicalFragment>
-  CalculateDivGeometry(const Div &div, const GeometryConstraints &constrains);
-
-  std::unique_ptr<PhysicalFragment>
-  CalculateImageGeometry(const ImageElement &img,
-                         const GeometryConstraints &constrains);
-
-  float viewport_width = 1280.0f;
-};
-
-// Работает исключительно с PhysicalFragment
-//
 // Зоны ответственности Формирование комманд отрисовки
 class PainterEngine {
 public:
@@ -117,6 +80,4 @@ public:
   // Active clipping state during fragment tree traversal.
   std::stack<ClipCommand> clip_command_stack_;
 };
-
-} // namespace webplatform
-} // namespace ve
+} // namespace ve::webplatform

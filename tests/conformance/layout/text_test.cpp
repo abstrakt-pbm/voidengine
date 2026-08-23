@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <memory>
-
 #include "document/div.h"
-#include "document/documentpainter.h"
 #include "document/style.h"
 #include "document/textelement.h"
+#include "rendering/geometryengine.h"
+#include "rendering/painterengine.h"
+
+#include <memory>
 
 namespace ve {
 namespace webplatform {

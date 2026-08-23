@@ -7,7 +7,6 @@ set(VEWP_SRC
     document/domnode.cc
     document/textelement.cc
     document/imageelement.cc
-    document/documentpainter.cc
     document/physicalfragment.cc
     document/style.cc
 
@@ -15,6 +14,9 @@ set(VEWP_SRC
     html/htmltoken.cc
     html/htmltokenizer.cc
     html/htmltreebuilder.cc
+
+    rendering/geometryengine.cc
+    rendering/painterengine.cc
 )
 
 add_library(voidengine_webplatform STATIC

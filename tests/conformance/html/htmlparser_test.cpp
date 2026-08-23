@@ -1,12 +1,11 @@
+#include <gtest/gtest.h>
+
 #include "document/div.h"
 #include "document/imageelement.h"
 #include "document/textelement.h"
 #include "html/htmlparser.h"
 
-#include <gtest/gtest.h>
-
 namespace ve::html {
-
 TEST(HTMLParserTest, ParsesImageAsVoidElement) {
   const std::string html =
       "<div>"

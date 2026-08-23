@@ -3,12 +3,9 @@
 #include <memory>
 
 #include "document/div.h"
-#include "document/documentpainter.h"
-#include "document/style.h"
+#include "rendering/geometryengine.h"
 
-namespace ve {
-namespace webplatform {
-
+namespace ve::webplatform {
 TEST(WidthTest, FixedWidthUsesStyleWidth) {
   Style style(100.0f, 50.0f, Style::Colour::RED);
   style.width_mode_ = Style::WidthMode::FIXED;
@@ -106,5 +103,4 @@ TEST(WidthTest, AutoChildUsesParentContentWidth) {
   EXPECT_FLOAT_EQ(child_fragment->x_, 17.0f);
 }
 
-} // namespace webplatform
-} // namespace ve
+} // namespace ve::webplatform
