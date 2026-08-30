@@ -7,6 +7,8 @@
 #include "document/style.h"
 #include "document/textelement.h"
 
+#include "rendering/layoutcontext.h"
+
 #include <memory>
 
 namespace ve {
@@ -71,16 +73,18 @@ std::unique_ptr<PhysicalFragment>
 GeometryEngine::CalculateDivGeometry(const Div &div,
                                      const GeometryConstraints &constraints) {
 
-  const Style &style = div.GetStyle();
+  const Style &style = *div.GetStyle();
   const Padding &padding = style.GetPadding();
   const Margin &margin = style.GetMargin();
+  const Colour &colour = style.GetColour();
+  BoxPhysicalFragment::Overflow bf_overflow =
+      style.overflow_ == Style::Overflow::VISIBLE
+          ? BoxPhysicalFragment::Overflow::VISIBLE
+          : BoxPhysicalFragment::Overflow::HIDDEN;
 
-  auto fragment = std::make_unique<BoxPhysicalFragment>(0, 0, style.Height(),
-                                                        style.Width(), &div);
-
-  //
-  // 1. Calculate own width.
-  //
+  auto fragment = std::make_unique<BoxPhysicalFragment>(
+      0, 0, style.Height(), style.Width(), style.border_width, bf_overflow,
+      colour.red_, colour.green_, colour.blue_);
 
   if (style.width_mode_ == Style::WidthMode::FIXED) {
     fragment->width_ = style.Width();
@@ -89,62 +93,30 @@ GeometryEngine::CalculateDivGeometry(const Div &div,
         constraints.max_width - margin.margin_left - margin.margin_right;
   }
 
-  //
-  // 2. Calculate content box.
-  //
-
-  const float content_x = padding.paddig_left + style.border_width;
-
-  float current_y = padding.paddig_top + style.border_width;
-
   const float content_width = fragment->width_ - padding.paddig_left -
                               padding.paddig_right - 2.0f * style.border_width;
 
-  //
-  // 3. Normal vertical flow.
-  //
-
+  float childs_bottom = padding.paddig_top + style.border_width;
+  LayoutContext layout_context(style);
   for (const auto &child : div.childs_) {
     const DomNode &child_node = *child;
-
     GeometryConstraints child_constraints{
         .max_width = content_width,
     };
-
     auto child_fragment =
         CalculateElementGeometry(child_node, child_constraints);
 
-    //
-    // Пока margins существуют только у Div.
-    //
-
-    float margin_left = 0.0f;
-    float margin_top = 0.0f;
-    float margin_bottom = 0.0f;
-
+    float child_margin_bottom = 0.0f;
+    const Style *child_style = nullptr;
     if (const auto *child_div = dynamic_cast<const Div *>(&child_node)) {
-
-      const Margin &child_margin = child_div->GetStyle().GetMargin();
-
-      margin_left = child_margin.margin_left;
-      margin_top = child_margin.margin_top;
-      margin_bottom = child_margin.margin_bottom;
+      child_style = child_div->GetStyle();
+      child_margin_bottom = child_style->GetMargin().margin_bottom;
     }
 
-    //
-    // Place child in parent's content box.
-    //
-
-    child_fragment->x_ = content_x + margin_left;
-
-    child_fragment->y_ = current_y + margin_top;
-
-    //
-    // Advance normal-flow cursor.
-    //
-
-    current_y = child_fragment->y_ + child_fragment->height_ + margin_bottom;
-
+    layout_context.LayoutChild(child_style, *child_fragment);
+    float current_child_bottom =
+        child_fragment->y_ + child_fragment->height_ + child_margin_bottom;
+    childs_bottom = std::max(childs_bottom, current_child_bottom);
     fragment->AddChild(std::move(child_fragment));
   }
 
@@ -155,7 +127,8 @@ GeometryEngine::CalculateDivGeometry(const Div &div,
   if (style.height_mode_ == Style::HeightMode::FIXED) {
     fragment->height_ = style.Height();
   } else {
-    fragment->height_ = current_y + padding.paddig_bottom + style.border_width;
+    fragment->height_ =
+        childs_bottom + padding.paddig_bottom + style.border_width;
   }
 
   return fragment;
@@ -168,14 +141,35 @@ GeometryEngine::CalculateImageGeometry(const ImageElement &img,
                                                  img.path_to_img_);
 }
 
-std::unique_ptr<PhysicalFragment>
-GeometryEngine::CalculateDocumentGeometry(const DomNode &dom_node) {
-  if (const auto *root_div_ptr = dynamic_cast<const Div *>(&dom_node)) {
-    const Div &root_div = *root_div_ptr;
-    GeometryConstraints geometry_constrains = {.max_width = viewport_width};
-    return CalculateElementGeometry(root_div, geometry_constrains);
+std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateDocumentGeometry(
+    const HtmlElementNode &htmlelementnode) {
+  // HTML узел по сути контейнер
+  // DIV  узел контейнер
+  // Возможно выделить общий ContainerNode
+  Colour colour(Colour::ColourName::WHITE);
+  std::unique_ptr<Style> html_style_ptr = std::make_unique<Style>();
+  html_style_ptr->colour_ = colour;
+  html_style_ptr->height_mode_ = Style::HeightMode::AUTO;
+  const Style &html_style = *html_style_ptr.get();
+  LayoutContext root_layout_context = LayoutContext(html_style);
+
+  BoxPhysicalFragment::Overflow bf_overflow =
+      BoxPhysicalFragment::Overflow::VISIBLE;
+
+  auto fragment = std::make_unique<BoxPhysicalFragment>(
+      0, 0, html_style.Height(), html_style.Width(), 0, bf_overflow,
+      colour.red_, colour.green_, colour.blue_);
+
+  const GeometryConstraints constrains{.max_width = viewport_width};
+  for (const auto &child_element : htmlelementnode.childs_) {
+    const DomNode &child_node = *child_element.get();
+    auto child_fragment = CalculateElementGeometry(child_node, constrains);
+    root_layout_context.LayoutChild(child_node.GetStyle(),
+                                    *child_fragment.get());
+    fragment->AddChild(std::move(child_fragment));
   }
-  return nullptr;
+
+  return fragment;
 }
 } // namespace webplatform
 } // namespace ve

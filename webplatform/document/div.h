@@ -1,21 +1,13 @@
 #pragma once
 
-#include "document/domnode.h"
+#include "document/containernode.h"
 #include "document/style.h"
-
-#include <memory>
-#include <vector>
 
 namespace ve {
 namespace webplatform {
-class Div : public DomNode {
+class Div : public ContainerNode {
 public:
-  Div(Style style);
-
-  const Style &GetStyle() const;
-
-private:
-  Style style_;
+  Div(std::unique_ptr<Style> style);
 };
 } // namespace webplatform
 } // namespace ve

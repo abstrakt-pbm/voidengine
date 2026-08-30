@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace ve {
 namespace webplatform {
 
@@ -29,9 +31,21 @@ public:
   float margin_bottom = 0.0f;
 };
 
+class Colour {
+public:
+  enum class ColourName { RED, GREEN, BLUE, BLACK, WHITE };
+  Colour(ColourName colour_name);
+  Colour(uint8_t red, uint8_t green, uint8_t blue);
+  Colour() = default;
+
+  uint8_t red_ = 255;
+  uint8_t green_ = 255;
+  uint8_t blue_ = 255;
+};
+
 class Style {
 public:
-  enum class Colour { RED, GREEN, BLUE };
+  enum class Display { BLOCK };
   enum class HeightMode { FIXED, AUTO };
   enum class WidthMode { FIXED, AUTO };
   enum class Overflow { VISIBLE, HIDDEN };
@@ -60,6 +74,9 @@ public:
   Colour colour_;
   Padding padding_;
   Margin margin_;
+
+  // layout algo choose
+  Display display_ = Display::BLOCK;
 };
 } // namespace webplatform
 } // namespace ve

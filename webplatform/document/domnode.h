@@ -1,13 +1,16 @@
 #pragma once
 
+#include "document/style.h"
+
 #include <memory>
-#include <vector>
 
 namespace ve {
 namespace webplatform {
+
 class DomNode {
 public:
   DomNode() = default;
+  DomNode(std::unique_ptr<Style> style);
   virtual ~DomNode() = default;
 
   DomNode(const DomNode &) = delete;
@@ -16,9 +19,10 @@ public:
   DomNode(DomNode &&) noexcept = default;
   DomNode &operator=(DomNode &&) noexcept = default;
 
-  // Проблема в том что у текста нет детей
-  void AddChild(std::unique_ptr<DomNode> child_element);
-  std::vector<std::unique_ptr<DomNode>> childs_;
+  void SetStyle(std::unique_ptr<Style> style);
+  const Style *GetStyle() const;
+  // Не у всех нод есть стиль
+  std::unique_ptr<Style> style_;
 };
 } // namespace webplatform
 } // namespace ve

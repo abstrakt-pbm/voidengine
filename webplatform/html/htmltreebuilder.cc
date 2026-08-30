@@ -1,7 +1,9 @@
 #include "htmltreebuilder.h"
 
+#include "document/containernode.h"
 #include "document/div.h"
 #include "document/domnode.h"
+#include "document/htmlelementnode.h"
 #include "document/imageelement.h"
 #include "document/style.h"
 #include "document/textelement.h"
@@ -15,26 +17,20 @@ namespace html {
 
 namespace {
 
-webplatform::Style CreateDefaultDivStyle() {
-  webplatform::Style style(0.0f, 0.0f, webplatform::Style::Colour::RED);
-
-  style.width_mode_ = webplatform::Style::WidthMode::AUTO;
-
-  style.height_mode_ = webplatform::Style::HeightMode::AUTO;
-
-  style.overflow_ = webplatform::Style::Overflow::VISIBLE;
-
+std::unique_ptr<webplatform::Style> CreateDefaultDivStyle() {
+  auto style = std::make_unique<ve::webplatform::Style>(
+      0.0f, 0.0f, webplatform::Colour(webplatform::Colour::ColourName::WHITE));
+  style->width_mode_ = webplatform::Style::WidthMode::AUTO;
+  style->height_mode_ = webplatform::Style::HeightMode::AUTO;
+  style->overflow_ = webplatform::Style::Overflow::VISIBLE;
   return style;
 }
 
 } // namespace
 
 HTMLTreeBuilder::HTMLTreeBuilder()
-    : tree_root_(std::make_unique<webplatform::DomNode>()) {
-  //
-  // Синтетический root всегда находится внизу
-  // stack of open elements.
-  //
+    : tree_root_(std::make_unique<webplatform::HtmlElementNode>()) {
+  // tag <html> always tree root
   open_elements_.push(tree_root_.get());
 }
 
@@ -50,7 +46,6 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
     if (html_token.Tag() == HTMLTag::kDiv) {
       new_element = std::make_unique<webplatform::Div>(CreateDefaultDivStyle());
     } else if (html_token.Tag() == HTMLTag::kImg) {
-      // проще перейти с вектора атрибутов на мапу
       std::string img_source = html_token.GetAttributeValue("src");
       std::string width_str = html_token.GetAttributeValue("width");
       std::string height_str = html_token.GetAttributeValue("height");
@@ -79,7 +74,10 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
     //
     // Новый element становится текущим открытым.
     //
-    open_elements_.push(new_element_ptr);
+    if (auto new_container_element =
+            dynamic_cast<webplatform::ContainerNode *>(new_element_ptr)) {
+      open_elements_.push(new_container_element);
+    }
     return;
   }
 
@@ -128,7 +126,7 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
   }
 }
 
-std::unique_ptr<webplatform::DomNode> HTMLTreeBuilder::TakeTree() {
+std::unique_ptr<webplatform::HtmlElementNode> HTMLTreeBuilder::TakeTree() {
   if (!tree_root_) {
     return nullptr;
   }
@@ -145,7 +143,7 @@ std::unique_ptr<webplatform::DomNode> HTMLTreeBuilder::TakeTree() {
   //
   // Синтетический DomNode наружу не отдаём.
   //
-  return std::move(tree_root_->childs_.front());
+  return std::move(tree_root_);
 }
 
 } // namespace html

@@ -56,9 +56,20 @@ public:
 
 class BoxPhysicalFragment : public PhysicalFragment {
 public:
+  enum class Overflow { VISIBLE, HIDDEN };
   BoxPhysicalFragment(float x, float y, float height, float width,
-                      const Div *owner);
-  const Div *owner_ = nullptr;
+                      float border_width, Overflow overflow, float r, float g,
+                      float b);
+
+  // border
+  float border_width_;
+
+  // background color
+  int r_;
+  int g_;
+  int b_;
+
+  Overflow overflow_;
 };
 
 class ImagePhysicalFragment : public PhysicalFragment {

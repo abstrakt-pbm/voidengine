@@ -5,8 +5,10 @@ project(voidengine_webplatform LANGUAGES CXX)
 set(VEWP_SRC
     document/div.cc
     document/domnode.cc
+    document/containernode.cc
     document/textelement.cc
     document/imageelement.cc
+    document/htmlelementnode.cc
     document/physicalfragment.cc
     document/style.cc
 
@@ -17,6 +19,7 @@ set(VEWP_SRC
 
     rendering/geometryengine.cc
     rendering/painterengine.cc
+    rendering/layoutcontext.cc
 )
 
 add_library(voidengine_webplatform STATIC

@@ -19,28 +19,17 @@ DisplayList
 PainterEngine::MakeDrawCommands(const BoxPhysicalFragment &fragment) {
   FillRectCommand render_command;
   DrawBorderCommand border_command;
-  const Div &div = *fragment.owner_;
 
   border_command.width = fragment.width_;
   border_command.height = fragment.height_;
-  border_command.border_width = div.GetStyle().border_width;
+  border_command.border_width = fragment.border_width_;
 
-  render_command.width = fragment.width_ - 2 * div.GetStyle().border_width;
-  render_command.height = fragment.height_ - 2 * div.GetStyle().border_width;
+  render_command.width = fragment.width_ - 2 * fragment.border_width_;
+  render_command.height = fragment.height_ - 2 * fragment.border_width_;
 
-  if (div.GetStyle().GetColour() == Style::Colour::RED) {
-    render_command.r = 255;
-    render_command.g = 0;
-    render_command.b = 0;
-  } else if (div.GetStyle().GetColour() == Style::Colour::GREEN) {
-    render_command.r = 0;
-    render_command.g = 255;
-    render_command.b = 0;
-  } else if (div.GetStyle().GetColour() == Style::Colour::BLUE) {
-    render_command.r = 0;
-    render_command.g = 0;
-    render_command.b = 255;
-  }
+  render_command.r = fragment.r_;
+  render_command.g = fragment.g_;
+  render_command.b = fragment.b_;
   return DisplayList{border_command, render_command};
 }
 
@@ -80,18 +69,15 @@ DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
                                     float offset_x, float offset_y) {
   DisplayList commands;
 
-  const Div &div = *fragment.owner_;
-  Style div_style = div.GetStyle();
-
   float cursor_x = offset_x + fragment.x_;
   float cursor_y = offset_y + fragment.y_;
 
-  if (div_style.overflow_ == Style::Overflow::HIDDEN) {
+  if (fragment.overflow_ == BoxPhysicalFragment::Overflow::HIDDEN) {
     ClipCommand clip_command;
-    clip_command.x = cursor_x + div_style.border_width;
-    clip_command.y = cursor_y + div_style.border_width;
-    clip_command.width = fragment.width_ - 2 * div_style.border_width;
-    clip_command.height = fragment.height_ - 2 * div_style.border_width;
+    clip_command.x = cursor_x + fragment.border_width_;
+    clip_command.y = cursor_y + fragment.border_width_;
+    clip_command.width = fragment.width_ - 2 * fragment.border_width_;
+    clip_command.height = fragment.height_ - 2 * fragment.border_width_;
 
     ClipCommand result_command = clip_command;
     if (!clip_command_stack_.empty()) {
@@ -112,8 +98,8 @@ DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
 
           if constexpr (std::is_same_v<Command,
                                        ve::webplatform::FillRectCommand>) {
-            command.x = cursor_x + div_style.border_width;
-            command.y = cursor_y + div_style.border_width;
+            command.x = cursor_x + fragment.border_width_;
+            command.y = cursor_y + fragment.border_width_;
           } else if constexpr (std::is_same_v<
                                    Command,
                                    ve::webplatform::DrawBorderCommand>) {
@@ -138,7 +124,7 @@ DisplayList PainterEngine::PaintDiv(const BoxPhysicalFragment &fragment,
     commands.insert(commands.end(), child_commands.begin(),
                     child_commands.end());
   }
-  if (div_style.overflow_ == Style::Overflow::HIDDEN) {
+  if (fragment.overflow_ == BoxPhysicalFragment::Overflow::HIDDEN) {
     clip_command_stack_.pop();
     if (clip_command_stack_.empty()) {
       commands.push_back(ResetClipCommand{});

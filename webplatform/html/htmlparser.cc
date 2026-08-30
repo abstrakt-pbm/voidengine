@@ -1,5 +1,6 @@
 #include "htmlparser.h"
 
+#include "document/htmlelementnode.h"
 #include "html/htmltreebuilder.h"
 #include "htmltoken.h"
 #include "htmltokenizer.h"
@@ -8,7 +9,7 @@
 
 namespace ve {
 namespace html {
-std::unique_ptr<webplatform::DomNode> ParseHTML(std::string raw_html) {
+std::unique_ptr<webplatform::HtmlElementNode> ParseHTML(std::string raw_html) {
   if (raw_html.size() == 0) {
     std::cout << "Raw HTML is empty!" << std::endl;
   }

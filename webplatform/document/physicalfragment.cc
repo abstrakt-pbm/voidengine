@@ -46,8 +46,11 @@ std::string PhysicalFragment::ToString() const {
 }
 
 BoxPhysicalFragment::BoxPhysicalFragment(float x, float y, float height,
-                                         float width, const Div *owner)
-    : PhysicalFragment(x, y, height, width), owner_(owner) {}
+                                         float width, float border_width,
+                                         Overflow overflow, float r, float g,
+                                         float b)
+    : PhysicalFragment(x, y, height, width), border_width_(border_width),
+      overflow_(overflow), r_(r), g_(g), b_(b) {}
 
 TextPhysicalFragment::TextPhysicalFragment(float x, float y, float height,
                                            float width, float baseline,

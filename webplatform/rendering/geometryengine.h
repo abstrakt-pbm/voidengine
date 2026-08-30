@@ -1,6 +1,7 @@
 #pragma once
 
 #include "document/div.h"
+#include "document/htmlelementnode.h"
 #include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/textelement.h"
@@ -11,10 +12,11 @@ struct GeometryConstraints {
   float max_width = 0.0f;
 };
 
+// Оределение геометрии элемента и расположнение детей
 class GeometryEngine {
 public:
   std::unique_ptr<PhysicalFragment>
-  CalculateDocumentGeometry(const DomNode &dom_node);
+  CalculateDocumentGeometry(const HtmlElementNode &htmlelementnode);
 
   std::unique_ptr<PhysicalFragment>
   CalculateElementGeometry(const DomNode &dom_node,

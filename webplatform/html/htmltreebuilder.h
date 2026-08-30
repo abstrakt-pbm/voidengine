@@ -1,6 +1,7 @@
 #pragma once
 
-#include "document/domnode.h"
+#include "document/containernode.h"
+#include "document/htmlelementnode.h"
 #include "html/htmltoken.h"
 
 #include <stack>
@@ -16,14 +17,14 @@ public:
   HTMLTreeBuilder();
 
   void ProcessToken(const HTMLToken &html_token);
-  std::unique_ptr<webplatform::DomNode> TakeTree();
+  std::unique_ptr<webplatform::HtmlElementNode> TakeTree();
 
 private:
   InsertionMode insertion_mode_ = InsertionMode::kInitialMode;
 
   // <html>
-  std::unique_ptr<webplatform::DomNode> tree_root_;
-  std::stack<webplatform::DomNode *> open_elements_;
+  std::unique_ptr<webplatform::HtmlElementNode> tree_root_;
+  std::stack<webplatform::ContainerNode *> open_elements_;
 };
 } // namespace html
 } // namespace ve

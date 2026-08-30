@@ -1,3 +1,5 @@
+#include "document/containernode.h"
+#include "document/htmlelementnode.h"
 #include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/textelement.h"
@@ -52,7 +54,7 @@ std::string ReadFile(const std::string &path) {
 // Layout и rasterization используют один TTF_Font.
 //
 
-void PrepareTextMetrics(ve::webplatform::DomNode &node, TTF_Font *font) {
+void PrepareTextMetrics(ve::webplatform::ContainerNode &node, TTF_Font *font) {
   if (auto *text = dynamic_cast<ve::webplatform::TextElement *>(&node)) {
 
     text->font_size = kFontSize;
@@ -106,7 +108,10 @@ void PrepareTextMetrics(ve::webplatform::DomNode &node, TTF_Font *font) {
   //
 
   for (auto &child : node.childs_) {
-    PrepareTextMetrics(*child, font);
+    if (ve::webplatform::ContainerNode *child_container =
+            dynamic_cast<ve::webplatform::ContainerNode *>(child.get())) {
+      PrepareTextMetrics(*child_container, font);
+    }
   }
 }
 
@@ -313,7 +318,7 @@ int main(int argc, char **argv) {
   // ==========================================
   //
 
-  std::unique_ptr<ve::webplatform::DomNode> dom_root =
+  std::unique_ptr<ve::webplatform::HtmlElementNode> dom_root =
       ve::html::ParseHTML(raw_html);
 
   if (!dom_root) {
