@@ -1,5 +1,6 @@
 #pragma once
 
+#include "document/containernode.h"
 #include "document/div.h"
 #include "document/htmlelementnode.h"
 #include "document/imageelement.h"
@@ -15,6 +16,8 @@ struct GeometryConstraints {
 // Оределение геометрии элемента и расположнение детей
 class GeometryEngine {
 public:
+  // вводим алгоритм геометрии контейнерной ноды
+
   std::unique_ptr<PhysicalFragment>
   CalculateDocumentGeometry(const HtmlElementNode &htmlelementnode);
 
@@ -30,6 +33,9 @@ public:
   std::unique_ptr<PhysicalFragment>
   CalculateImageGeometry(const ImageElement &img,
                          const GeometryConstraints &constrains);
+  std::unique_ptr<PhysicalFragment>
+  CalculateContainerNodeGeometry(const ContainerNode &container_node,
+                                 const GeometryConstraints &constrains);
 
   float viewport_width = 1280.0f;
 };

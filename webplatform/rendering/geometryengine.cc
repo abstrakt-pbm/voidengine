@@ -1,7 +1,9 @@
 #include "geometryengine.h"
 
+#include "document/containernode.h"
 #include "document/div.h"
 #include "document/domnode.h"
+#include "document/htmlelementnode.h"
 #include "document/imageelement.h"
 #include "document/physicalfragment.h"
 #include "document/style.h"
@@ -16,8 +18,8 @@ namespace webplatform {
 
 std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateElementGeometry(
     const DomNode &dom_node, const GeometryConstraints &constrains) {
-  if (auto *div = dynamic_cast<const Div *>(&dom_node)) {
-    return CalculateDivGeometry(*div, constrains);
+  if (auto *container_node = dynamic_cast<const ContainerNode *>(&dom_node)) {
+    return CalculateContainerNodeGeometry(*container_node, constrains);
   } else if (auto *text = dynamic_cast<const TextElement *>(&dom_node)) {
     return CalculateTextGeometry(*text, constrains);
   } else if (auto *img = dynamic_cast<const ImageElement *>(&dom_node)) {
@@ -143,33 +145,87 @@ GeometryEngine::CalculateImageGeometry(const ImageElement &img,
 
 std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateDocumentGeometry(
     const HtmlElementNode &htmlelementnode) {
-  // HTML узел по сути контейнер
-  // DIV  узел контейнер
-  // Возможно выделить общий ContainerNode
+  //  Стандартные стили рута 100% выставляются вне движка геометрии
   Colour colour(Colour::ColourName::WHITE);
   std::unique_ptr<Style> html_style_ptr = std::make_unique<Style>();
   html_style_ptr->colour_ = colour;
   html_style_ptr->height_mode_ = Style::HeightMode::AUTO;
+  html_style_ptr->width_mode_ = Style::WidthMode::AUTO;
+  HtmlElementNode &nonconst_htmlelem =
+      const_cast<HtmlElementNode &>(htmlelementnode);
   const Style &html_style = *html_style_ptr.get();
   LayoutContext root_layout_context = LayoutContext(html_style);
 
   BoxPhysicalFragment::Overflow bf_overflow =
       BoxPhysicalFragment::Overflow::VISIBLE;
 
-  auto fragment = std::make_unique<BoxPhysicalFragment>(
-      0, 0, html_style.Height(), html_style.Width(), 0, bf_overflow,
-      colour.red_, colour.green_, colour.blue_);
-
+  nonconst_htmlelem.SetStyle(std::move(html_style_ptr));
   const GeometryConstraints constrains{.max_width = viewport_width};
-  for (const auto &child_element : htmlelementnode.childs_) {
+  return CalculateElementGeometry(nonconst_htmlelem, constrains);
+}
+
+std::unique_ptr<PhysicalFragment>
+GeometryEngine::CalculateContainerNodeGeometry(
+    const ContainerNode &container_node,
+    const GeometryConstraints &constrains) {
+  const Style &container_node_style = *container_node.GetStyle();
+  const Margin &container_node_margin = container_node_style.GetMargin();
+  const Padding &container_node_padding = container_node_style.GetPadding();
+  const Colour &container_node_colour = container_node_style.GetColour();
+  LayoutContext root_layout_context = LayoutContext(container_node_style);
+
+  // потом ибавиться от проблемы трансляции типов Overflow
+  BoxPhysicalFragment::Overflow container_node_overflow =
+      container_node_style.overflow_ == Style::Overflow::VISIBLE
+          ? BoxPhysicalFragment::Overflow::VISIBLE
+          : BoxPhysicalFragment::Overflow::HIDDEN;
+
+  auto fragment = std::make_unique<BoxPhysicalFragment>(
+      0, 0, container_node_style.Height(), container_node_style.Width(),
+      container_node_style.border_width, container_node_overflow,
+      container_node_colour.red_, container_node_colour.green_,
+      container_node_colour.blue_);
+
+  // Логику авто ширины
+  if (container_node_style.width_mode_ == Style::WidthMode::FIXED) {
+    fragment->width_ = container_node_style.Width();
+  } else {
+    fragment->width_ = constrains.max_width -
+                       container_node_margin.margin_left -
+                       container_node_margin.margin_right;
+  }
+
+  const GeometryConstraints new_constrains{.max_width = fragment->width_};
+
+  float childs_bottom =
+      container_node_padding.paddig_top + container_node_style.border_width;
+  for (const auto &child_element : container_node.childs_) {
     const DomNode &child_node = *child_element.get();
-    auto child_fragment = CalculateElementGeometry(child_node, constrains);
+    auto child_fragment = CalculateElementGeometry(child_node, new_constrains);
     root_layout_context.LayoutChild(child_node.GetStyle(),
                                     *child_fragment.get());
+    float child_margin_bottom = 0.0f;
+    const Style *child_style = child_element->GetStyle();
+    if (child_style) {
+      child_margin_bottom = child_style->GetMargin().margin_bottom;
+    }
+
+    float current_child_bottom =
+        child_fragment->y_ + child_fragment->height_ + child_margin_bottom;
+    childs_bottom = std::max(childs_bottom, current_child_bottom);
     fragment->AddChild(std::move(child_fragment));
+  }
+
+  // логика авто высоты
+  if (container_node_style.height_mode_ == Style::HeightMode::FIXED) {
+    fragment->height_ = container_node_style.Height();
+  } else {
+    fragment->height_ = childs_bottom + container_node_padding.paddig_bottom +
+                        container_node_style.border_width;
   }
 
   return fragment;
 }
+
 } // namespace webplatform
 } // namespace ve

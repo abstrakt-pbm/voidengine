@@ -66,8 +66,8 @@ public:
   HeightMode height_mode_ = HeightMode::FIXED;
   WidthMode width_mode_ = WidthMode::FIXED;
   Overflow overflow_ = Overflow::VISIBLE;
-  float width_;
-  float height_;
+  float width_ = 0.0f;
+  float height_ = 0.0f;
 
   float border_width = 0.0f;
 
