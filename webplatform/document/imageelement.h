@@ -1,6 +1,8 @@
 #pragma once
 #include "domnode.h"
 
+#include <string>
+
 namespace ve {
 namespace webplatform {
 class ImageElement : public DomNode {

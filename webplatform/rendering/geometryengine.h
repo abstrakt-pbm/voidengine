@@ -2,6 +2,7 @@
 
 #include "document/containernode.h"
 #include "document/div.h"
+#include "document/elementnode.h"
 #include "document/htmlelementnode.h"
 #include "document/imageelement.h"
 #include "document/physicalfragment.h"
@@ -14,6 +15,10 @@ struct GeometryConstraints {
 };
 
 // Оределение геометрии элемента и расположнение детей
+// Чтобы движок геометрии мыслил только тем что реально будет отрисовано нужно
+// выделить отдельный LayoutTree который будет формироваться из DOM и будет
+// формироваться по правилам того что должно быть отрисовано например учёт
+// display:none
 class GeometryEngine {
 public:
   // вводим алгоритм геометрии контейнерной ноды
@@ -22,7 +27,7 @@ public:
   CalculateDocumentGeometry(const HtmlElementNode &htmlelementnode);
 
   std::unique_ptr<PhysicalFragment>
-  CalculateElementGeometry(const DomNode &dom_node,
+  CalculateElementGeometry(const DomNode &element_node,
                            const GeometryConstraints &constrains);
   std::unique_ptr<PhysicalFragment>
   CalculateTextGeometry(const TextElement &text_element,
@@ -34,7 +39,7 @@ public:
   CalculateImageGeometry(const ImageElement &img,
                          const GeometryConstraints &constrains);
   std::unique_ptr<PhysicalFragment>
-  CalculateContainerNodeGeometry(const ContainerNode &container_node,
+  CalculateContainerNodeGeometry(const ElementNode &container_node,
                                  const GeometryConstraints &constrains);
 
   float viewport_width = 1280.0f;

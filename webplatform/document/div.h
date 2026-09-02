@@ -1,11 +1,11 @@
 #pragma once
 
-#include "document/containernode.h"
+#include "document/elementnode.h"
 #include "document/style.h"
 
 namespace ve {
 namespace webplatform {
-class Div : public ContainerNode {
+class Div : public ElementNode {
 public:
   Div(std::unique_ptr<Style> style);
 };

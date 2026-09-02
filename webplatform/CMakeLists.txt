@@ -6,6 +6,7 @@ set(VEWP_SRC
     document/div.cc
     document/domnode.cc
     document/containernode.cc
+    document/elementnode.cc
     document/textelement.cc
     document/imageelement.cc
     document/htmlelementnode.cc

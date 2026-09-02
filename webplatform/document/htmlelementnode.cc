@@ -1,11 +1,8 @@
 #include "document/htmlelementnode.h"
 
-#include "document/containernode.h"
-
 #include <memory>
 
 namespace ve::webplatform {
-HtmlElementNode::HtmlElementNode()
-    : ContainerNode(std::make_unique<Style>()) {};
+HtmlElementNode::HtmlElementNode() : ElementNode(std::make_unique<Style>()) {};
 
 } // namespace ve::webplatform

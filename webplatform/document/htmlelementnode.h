@@ -1,9 +1,9 @@
 #pragma once
 
-#include "document/containernode.h"
+#include "document/elementnode.h"
 
 namespace ve::webplatform {
-class HtmlElementNode : public ContainerNode {
+class HtmlElementNode : public ElementNode {
 public:
   HtmlElementNode();
 };
