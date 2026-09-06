@@ -34,10 +34,18 @@ namespace webplatform {
 PhysicalFragment::PhysicalFragment(float x, float y, float height, float width)
     : x_(x), y_(y), height_(height), width_(width) {}
 
+PhysicalFragment::PhysicalFragment(float x, float y) : x_(x), y_(y) {}
+
 void PhysicalFragment::AddChild(
     std::unique_ptr<PhysicalFragment> child_fragment) {
   child_fragments_.push_back(std::move(child_fragment));
 }
+void PhysicalFragment::SetHeight(float height) { height_ = height; }
+void PhysicalFragment::SetWidth(float width) { width_ = width; }
+float PhysicalFragment::Height() { return height_; }
+float PhysicalFragment::Width() { return width_; }
+float PhysicalFragment::X() { return x_; }
+float PhysicalFragment::Y() { return y_; }
 
 std::string PhysicalFragment::ToString() const {
   std::ostringstream stream;

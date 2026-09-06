@@ -6,6 +6,7 @@
 #include "html/htmlparser.h"
 
 #include "rendering/geometryengine.h"
+#include "rendering/layoutengine/layoutengine.h"
 #include "rendering/painterengine.h"
 
 #include <SDL3/SDL.h>
@@ -347,10 +348,16 @@ int main(int argc, char **argv) {
   // DOM -> PhysicalFragment tree
   // ==========================================
   //
-
+  ve::webplatform::LayoutEngine layout_engine;
   ve::webplatform::GeometryEngine geometry_engine;
+  auto layout_root = layout_engine.LayoutDOM(*dom_root);
 
-  auto root_geometry = geometry_engine.CalculateDocumentGeometry(*dom_root);
+  if (!layout_root) {
+    std::cerr << "Layout calculation failed" << std::endl;
+    return 0;
+  }
+
+  auto root_geometry = geometry_engine.CalculateDocumentGeometry(*layout_root);
 
   if (!root_geometry) {
     std::cerr << "Geometry calculation failed" << std::endl;

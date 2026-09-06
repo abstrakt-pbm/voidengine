@@ -164,28 +164,19 @@ DisplayList PainterEngine::PaintText(const TextPhysicalFragment &fragment,
 
   DisplayList commands;
 
-  const TextElement *text_element = fragment.owner_;
-
-  if (text_element == nullptr) {
-    return commands;
-  }
-
   const float fragment_x = offset_x + fragment.x_;
-
   const float fragment_y = offset_y + fragment.y_;
 
   for (const auto &text_line : fragment.text_lines_) {
     DrawTextCommand command;
 
     command.x = fragment_x + text_line.x_;
-
     command.baseline_y = fragment_y + text_line.y_ + fragment.baseline_;
 
-    command.font_size = text_element->font_size;
-
+    command.font_size = 16.0f; // временно
     command.text = text_line.payload_;
 
-    commands.push_back(command);
+    commands.push_back(std::move(command));
   }
 
   return commands;

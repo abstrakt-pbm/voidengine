@@ -21,6 +21,11 @@ set(VEWP_SRC
     rendering/geometryengine.cc
     rendering/painterengine.cc
     rendering/layoutcontext.cc
+
+    rendering/layoutengine/layoutbox.cc
+    rendering/layoutengine/layoutengine.cc
+    rendering/layoutengine/layoutnode.cc
+    rendering/layoutengine/layouttext.cc
 )
 
 add_library(voidengine_webplatform STATIC

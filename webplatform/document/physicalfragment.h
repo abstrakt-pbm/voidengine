@@ -14,6 +14,7 @@ class TextElement;
 class PhysicalFragment {
 public:
   PhysicalFragment(float x, float y, float height, float width);
+  PhysicalFragment(float x, float y);
   PhysicalFragment(const PhysicalFragment &) = delete;
   PhysicalFragment(PhysicalFragment &&) noexcept = default;
 
@@ -23,6 +24,14 @@ public:
   PhysicalFragment &operator=(PhysicalFragment &&) noexcept = default;
 
   void AddChild(std::unique_ptr<PhysicalFragment> child_fragment);
+
+  void SetHeight(float height);
+  void SetWidth(float width);
+
+  float Height();
+  float Width();
+  float X();
+  float Y();
 
   float x_ = 0.0f;
   float y_ = 0.0f;

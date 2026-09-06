@@ -1,11 +1,11 @@
 #pragma once
-#include "domnode.h"
+#include "document/elementnode.h"
 
 #include <string>
 
 namespace ve {
 namespace webplatform {
-class ImageElement : public DomNode {
+class ImageElement : public ElementNode {
 public:
   ImageElement(float widht, float height, std::string path_to_img);
 
