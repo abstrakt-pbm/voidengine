@@ -28,11 +28,12 @@ class GeometryEngine {
 public:
   // Layout
   std::unique_ptr<PhysicalFragment>
-  CalculateLayoutBoxGeometry(const LayoutBox &layout_root,
-                             const GeometryConstraints &constrains);
-  std::unique_ptr<PhysicalFragment>
   CalculateLayoutNodeGeometry(const LayoutNode &layout_node,
                               const GeometryConstraints &constrains);
+  std::unique_ptr<PhysicalFragment>
+  CalculateLayoutBoxGeometry(const LayoutBox &layout_root,
+                             const GeometryConstraints &constrains);
+
   std::unique_ptr<PhysicalFragment>
   CalculateLayoutTextGeometry(const LayoutText &layout_text,
                               const GeometryConstraints &constrains);
@@ -42,26 +43,6 @@ public:
 
   std::unique_ptr<PhysicalFragment>
   CalculateDocumentGeometry(const LayoutNode &root_box);
-
-  // DOM
-  std::unique_ptr<PhysicalFragment>
-  CalculateDocumentGeometry(const HtmlElementNode &htmlelementnode);
-
-  std::unique_ptr<PhysicalFragment>
-  CalculateNodeGeometry(const DomNode &dom_node,
-                        const GeometryConstraints &constrains);
-  std::unique_ptr<PhysicalFragment>
-  CalculateTextGeometry(const TextElement &text_element,
-                        const GeometryConstraints &constrains);
-  std::unique_ptr<PhysicalFragment>
-  CalculateDivGeometry(const Div &div, const GeometryConstraints &constrains);
-
-  std::unique_ptr<PhysicalFragment>
-  CalculateImageGeometry(const ImageElement &img,
-                         const GeometryConstraints &constrains);
-  std::unique_ptr<PhysicalFragment>
-  CalculateElementNodeGeometry(const ElementNode &container_node,
-                               const GeometryConstraints &constrains);
 
   float viewport_width = 1280.0f;
 };
