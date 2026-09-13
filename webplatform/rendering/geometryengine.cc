@@ -3,6 +3,7 @@
 #include "document/physicalfragment.h"
 #include "document/style.h"
 
+#include "rendering/fragmentbuilder.h"
 #include "rendering/layoutcontext.h"
 #include "rendering/layoutengine/layoutbox.h"
 #include "rendering/layoutengine/layoutimage.h"
@@ -16,7 +17,7 @@ namespace webplatform {
 std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateLayoutNodeGeometry(
     const LayoutNode &layout_node, const GeometryConstraints &constrains) {
   if (auto *box = dynamic_cast<const LayoutBox *>(&layout_node)) {
-    return CalculateLayoutBoxGeometry(*box, constrains);
+    return CalculateLayoutBoxGeometryBM(*box, constrains);
   } else if (auto *img = dynamic_cast<const LayoutImage *>(&layout_node)) {
     return CalculateLayoutImageGeometry(*img, constrains);
   } else if (auto *text = dynamic_cast<const LayoutText *>(&layout_node)) {
@@ -30,7 +31,6 @@ std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateLayoutBoxGeometry(
   if (!layout_root.GetStyle()) {
     std::cout << "layout_root style undefined" << std::endl;
   }
-
   const Style &layout_root_style = *layout_root.GetStyle();
   const Margin &layout_root_margin = layout_root_style.GetMargin();
   const Padding &layout_root_padding = layout_root_style.GetPadding();
@@ -95,6 +95,32 @@ std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateLayoutBoxGeometry(
                         layout_root_style.border_width;
   }
   return fragment;
+}
+
+std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateLayoutBoxGeometryBM(
+    const LayoutBox &layout_box, const GeometryConstraints &constrains) {
+  if (!layout_box.GetStyle()) {
+    std::cout << "LayoutBox styles is NULL!" << std::endl;
+    return nullptr;
+  }
+  const Style &layout_box_style = *layout_box.GetStyle();
+
+  const GeometryConstraints new_constrains{
+      .max_width = constrains.max_width -
+                   layout_box_style.GetMargin().margin_left -
+                   layout_box_style.GetMargin().margin_right};
+  FragmentBuilder fragment_builder(layout_box_style, new_constrains);
+  for (const auto &child_element : layout_box.Children()) {
+    auto child_fragment =
+        CalculateLayoutNodeGeometry(*child_element, new_constrains);
+    const Style *child_style = nullptr;
+    if (const LayoutBox *child_box =
+            dynamic_cast<const LayoutBox *>(child_element.get())) {
+      child_style = child_box->GetStyle();
+    }
+    fragment_builder.AddFragmentChild(child_style, std::move(child_fragment));
+  }
+  return fragment_builder.Build();
 }
 
 std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateLayoutTextGeometry(

@@ -1,12 +1,6 @@
 #pragma once
 
-#include "document/containernode.h"
-#include "document/div.h"
-#include "document/elementnode.h"
-#include "document/htmlelementnode.h"
-#include "document/imageelement.h"
 #include "document/physicalfragment.h"
-#include "document/textelement.h"
 
 #include "rendering/layoutengine/layoutbox.h"
 #include "rendering/layoutengine/layoutimage.h"
@@ -24,6 +18,7 @@ struct GeometryConstraints {
 // выделить отдельный LayoutTree который будет формироваться из DOM и будет
 // формироваться по правилам того что должно быть отрисовано например учёт
 // display:none
+
 class GeometryEngine {
 public:
   // Layout
@@ -33,6 +28,9 @@ public:
   std::unique_ptr<PhysicalFragment>
   CalculateLayoutBoxGeometry(const LayoutBox &layout_root,
                              const GeometryConstraints &constrains);
+  std::unique_ptr<PhysicalFragment>
+  CalculateLayoutBoxGeometryBM(const LayoutBox &layout_root,
+                               const GeometryConstraints &constrains);
 
   std::unique_ptr<PhysicalFragment>
   CalculateLayoutTextGeometry(const LayoutText &layout_text,

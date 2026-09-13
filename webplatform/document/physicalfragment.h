@@ -63,6 +63,20 @@ public:
   const TextElement *owner_ = nullptr;
 };
 
+class PhysicalRect {
+public:
+  float X() const;
+  float Y() const;
+  float Width() const;
+  float Height() const;
+
+private:
+  float x_ = 0.f;
+  float y_ = 0.f;
+  float width_ = 0.f;
+  float height_ = 0.f;
+};
+
 class BoxPhysicalFragment : public PhysicalFragment {
 public:
   enum class Overflow { VISIBLE, HIDDEN };

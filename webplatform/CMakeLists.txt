@@ -21,6 +21,7 @@ set(VEWP_SRC
     rendering/geometryengine.cc
     rendering/painterengine.cc
     rendering/layoutcontext.cc
+    rendering/fragmentbuilder.cc
 
     rendering/layoutengine/layoutbox.cc
     rendering/layoutengine/layoutengine.cc
