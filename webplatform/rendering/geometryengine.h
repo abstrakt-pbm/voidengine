@@ -29,10 +29,6 @@ public:
   CalculateLayoutBoxGeometry(const LayoutBox &layout_root,
                              const GeometryConstraints &constrains);
   std::unique_ptr<PhysicalFragment>
-  CalculateLayoutBoxGeometryBM(const LayoutBox &layout_root,
-                               const GeometryConstraints &constrains);
-
-  std::unique_ptr<PhysicalFragment>
   CalculateLayoutTextGeometry(const LayoutText &layout_text,
                               const GeometryConstraints &constrains);
   std::unique_ptr<PhysicalFragment>
