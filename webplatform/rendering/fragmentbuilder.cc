@@ -1,4 +1,5 @@
 #include "rendering/fragmentbuilder.h"
+#include "document/style.h"
 namespace ve::webplatform {
 
 FragmentBuilder::FragmentBuilder(const Style &style,
@@ -12,24 +13,43 @@ FragmentBuilder::FragmentBuilder(const Style &style,
       style.overflow_ == Style::Overflow::VISIBLE
           ? BoxPhysicalFragment::Overflow::VISIBLE
           : BoxPhysicalFragment::Overflow::HIDDEN;
+  float height = 0.f;
+  float width = 0.f;
+
+  if (style.Width().Value()) {
+    width = *style.Width().Value();
+  }
+  if (style.Height().Value()) {
+    height = *style.Height().Value();
+  }
   fragment_ = std::move(std::make_unique<BoxPhysicalFragment>(
-      0, 0, *style_.Height().Value(), *style_.Width().Value(),
-      style_.border_width, layout_root_overflow, colour.red_, colour.green_,
-      colour.blue_));
+      0, 0, height, width, style_.border_width, layout_root_overflow,
+      colour.red_, colour.green_, colour.blue_));
 }
 
 std::unique_ptr<PhysicalFragment> FragmentBuilder::Build() {
   const Padding &padding = style_.GetPadding();
 
-  if (style_.Height().Mode() == Height::HeightMode::FIXED) {
-    if (style_.Height().Value()) {
-      fragment_->height_ = *style_.Height().Value();
-    }
+  const float horizontal_edges =
+      padding.paddig_left + padding.paddig_right + 2 * style_.border_width;
+
+  const float vertical_edges =
+      padding.paddig_top + padding.paddig_bottom + 2 * style_.border_width;
+
+  if (const auto height = style_.Height().Value()) {
+    fragment_->height_ = *height;
   } else {
-    auto content_box = ContentBoxSnapshot();
     fragment_->height_ =
-        content_box.Height() + padding.paddig_bottom + style_.border_width;
+        std::max(0.f, layout_context_.OccupiedBlockSize()) + vertical_edges;
   }
+
+  if (const auto width = style_.Width().Value()) {
+    fragment_->width_ = *width;
+  } else {
+    fragment_->width_ =
+        std::max(geometry_constrains_.max_width, horizontal_edges);
+  }
+
   return std::move(fragment_);
 }
 
