@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 namespace ve {
 namespace webplatform {
@@ -31,6 +32,36 @@ public:
   float margin_bottom = 0.0f;
 };
 
+class Height {
+public:
+  enum class HeightMode { FIXED, AUTO };
+  Height() = default;
+  Height(HeightMode mode);
+  Height(float value);
+
+  HeightMode Mode() const;
+  std::optional<float> Value() const;
+
+private:
+  float value_ = 0.f;
+  HeightMode mode_ = HeightMode::FIXED;
+};
+
+class Width {
+public:
+  enum class WidthMode { FIXED, AUTO };
+  Width() = default;
+  Width(WidthMode mode);
+  Width(float value);
+
+  WidthMode Mode() const;
+  std::optional<float> Value() const;
+
+private:
+  float value_ = 0.f;
+  WidthMode mode_ = WidthMode::FIXED;
+};
+
 class Colour {
 public:
   enum class ColourName { RED, GREEN, BLUE, BLACK, WHITE };
@@ -46,15 +77,13 @@ public:
 class Style {
 public:
   enum class Display { BLOCK };
-  enum class HeightMode { FIXED, AUTO };
-  enum class WidthMode { FIXED, AUTO };
   enum class Overflow { VISIBLE, HIDDEN };
 
-  Style(float width, float height, Colour colour);
+  Style(class Width width, class Height height, Colour colour);
   Style() = default;
 
-  float Width() const;
-  float Height() const;
+  class Width Width() const;
+  class Height Height() const;
   Colour GetColour() const;
 
   const Padding &GetPadding() const;
@@ -63,11 +92,10 @@ public:
   void SetPadding(Padding paddings);
   void SetMargin(Margin margins);
 
-  HeightMode height_mode_ = HeightMode::FIXED;
-  WidthMode width_mode_ = WidthMode::FIXED;
+  class Width width_;
+  class Height height_;
+
   Overflow overflow_ = Overflow::VISIBLE;
-  float width_ = 0.0f;
-  float height_ = 0.0f;
 
   float border_width = 0.0f;
 

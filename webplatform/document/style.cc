@@ -1,14 +1,15 @@
 #include "document/style.h"
+#include <optional>
 
 namespace ve {
 namespace webplatform {
 
-Style::Style(float width, float height, Colour colour)
+Style::Style(class Width width, class Height height, Colour colour)
     : width_(width), height_(height), colour_(colour) {}
 
-float Style::Width() const { return width_; }
+class Width Style::Width() const { return width_; }
 
-float Style::Height() const { return height_; }
+class Height Style::Height() const { return height_; }
 
 Colour Style::GetColour() const { return colour_; }
 
@@ -95,6 +96,28 @@ Colour::Colour(Colour::ColourName colour_name) {
 }
 Colour::Colour(uint8_t red, uint8_t green, uint8_t blue)
     : red_(red), green_(green), blue_(blue) {}
+
+Height::Height(HeightMode mode) : value_(0.f), mode_(mode) {}
+Height::Height(float value) : value_(value), mode_(HeightMode::FIXED) {}
+
+Height::HeightMode Height::Mode() const { return mode_; }
+std::optional<float> Height::Value() const {
+  if (mode_ == HeightMode::FIXED) {
+    return value_;
+  }
+  return std::nullopt;
+}
+
+Width::Width(WidthMode mode) : value_(0.f), mode_(mode) {}
+Width::Width(float value) : value_(value), mode_(WidthMode::FIXED) {}
+
+Width::WidthMode Width::Mode() const { return mode_; }
+std::optional<float> Width::Value() const {
+  if (mode_ == WidthMode::FIXED) {
+    return value_;
+  }
+  return std::nullopt;
+}
 
 } // namespace webplatform
 } // namespace ve

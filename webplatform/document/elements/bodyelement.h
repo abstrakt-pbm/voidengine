@@ -3,8 +3,9 @@
 #include "document/elementnode.h"
 
 namespace ve::webplatform {
-class HtmlElementNode : public ElementNode {
+class BodyElementNode : public ElementNode {
 public:
-  HtmlElementNode(std::unique_ptr<Style> style);
+  BodyElementNode(std::unique_ptr<Style> style);
 };
+
 } // namespace ve::webplatform

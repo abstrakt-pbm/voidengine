@@ -1,9 +1,6 @@
 #include "painterengine.h"
 
-#include "document/div.h"
 #include "document/physicalfragment.h"
-#include "document/style.h"
-#include "document/textelement.h"
 
 namespace ve::webplatform {
 DisplayList PainterEngine::Paint(const PhysicalFragment &fragment) {

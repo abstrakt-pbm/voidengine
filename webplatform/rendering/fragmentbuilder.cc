@@ -13,15 +13,18 @@ FragmentBuilder::FragmentBuilder(const Style &style,
           ? BoxPhysicalFragment::Overflow::VISIBLE
           : BoxPhysicalFragment::Overflow::HIDDEN;
   fragment_ = std::move(std::make_unique<BoxPhysicalFragment>(
-      0, 0, style_.Height(), style_.Width(), style_.border_width,
-      layout_root_overflow, colour.red_, colour.green_, colour.blue_));
+      0, 0, *style_.Height().Value(), *style_.Width().Value(),
+      style_.border_width, layout_root_overflow, colour.red_, colour.green_,
+      colour.blue_));
 }
 
 std::unique_ptr<PhysicalFragment> FragmentBuilder::Build() {
   const Padding &padding = style_.GetPadding();
 
-  if (style_.height_mode_ == Style::HeightMode::FIXED) {
-    fragment_->height_ = style_.Height();
+  if (style_.Height().Mode() == Height::HeightMode::FIXED) {
+    if (style_.Height().Value()) {
+      fragment_->height_ = *style_.Height().Value();
+    }
   } else {
     auto content_box = ContentBoxSnapshot();
     fragment_->height_ =
@@ -48,22 +51,22 @@ Box FragmentBuilder::ContentBoxSnapshot() {
   const float padding_bottom = padding.paddig_bottom;
 
   const float border_width = style_.border_width;
-  const float border_box_height = style_.Height();
+  const Height border_box_height = style_.Height();
 
-  const float border_box_width = style_.width_mode_ == Style::WidthMode::AUTO
+  const float border_box_width = style_.Width().Mode() == Width::WidthMode::AUTO
                                      ? geometry_constrains_.max_width
-                                     : style_.Width();
+                                     : *style_.Width().Value();
   // Ширина
   const float raw_calc_width =
       border_box_width - padding_left - padding_right - 2 * border_width;
   width = std::max(0.f, raw_calc_width);
 
   // Высотой
-  if (style_.height_mode_ == Style::HeightMode::AUTO) {
+  if (style_.Height().Mode() == Height::HeightMode::AUTO) {
     height = layout_context_.OccupiedBlockSize();
   } else {
-    const float raw_calc_height =
-        border_box_height - padding_top - padding_bottom - 2 * border_width;
+    const float raw_calc_height = *border_box_height.Value() - padding_top -
+                                  padding_bottom - 2 * border_width;
     height = std::max(0.f, raw_calc_height);
   }
 

@@ -4,7 +4,6 @@
 #include "document/style.h"
 
 #include "rendering/fragmentbuilder.h"
-#include "rendering/layoutcontext.h"
 #include "rendering/layoutengine/layoutbox.h"
 #include "rendering/layoutengine/layoutimage.h"
 
@@ -34,14 +33,18 @@ std::unique_ptr<PhysicalFragment> GeometryEngine::CalculateLayoutBoxGeometry(
   }
   const Style &layout_box_style = *layout_box.GetStyle();
 
-  const GeometryConstraints new_constrains{
+  const GeometryConstraints box_constrains{
       .max_width = constrains.max_width -
                    layout_box_style.GetMargin().margin_left -
                    layout_box_style.GetMargin().margin_right};
-  FragmentBuilder fragment_builder(layout_box_style, new_constrains);
+  FragmentBuilder fragment_builder(layout_box_style, box_constrains);
+
+  Box content_box_snapshot = fragment_builder.ContentBoxSnapshot();
+  const GeometryConstraints child_constrains{.max_width =
+                                                 content_box_snapshot.Width()};
   for (const auto &child_element : layout_box.Children()) {
     auto child_fragment =
-        CalculateLayoutNodeGeometry(*child_element, new_constrains);
+        CalculateLayoutNodeGeometry(*child_element, child_constrains);
     const Style *child_style = nullptr;
     if (const LayoutBox *child_box =
             dynamic_cast<const LayoutBox *>(child_element.get())) {
@@ -73,8 +76,8 @@ GeometryEngine::CalculateDocumentGeometry(const LayoutNode &root_box) {
   Colour colour(Colour::ColourName::WHITE);
   std::unique_ptr<Style> html_style_ptr = std::make_unique<Style>();
   html_style_ptr->colour_ = colour;
-  html_style_ptr->height_mode_ = Style::HeightMode::AUTO;
-  html_style_ptr->width_mode_ = Style::WidthMode::AUTO;
+  html_style_ptr->height_ = Height(Height::HeightMode::AUTO);
+  html_style_ptr->width_ = Width(Width::WidthMode::AUTO);
   LayoutNode *root_box_unconst_ptr = const_cast<LayoutNode *>(&root_box);
   if (auto root_node = dynamic_cast<LayoutBox *>(root_box_unconst_ptr)) {
     root_node->style_ = html_style_ptr.get();

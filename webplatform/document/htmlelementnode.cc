@@ -3,6 +3,7 @@
 #include <memory>
 
 namespace ve::webplatform {
-HtmlElementNode::HtmlElementNode() : ElementNode(std::make_unique<Style>()) {};
+HtmlElementNode::HtmlElementNode(std::unique_ptr<Style> style)
+    : ElementNode(std::move(style)) {};
 
 } // namespace ve::webplatform

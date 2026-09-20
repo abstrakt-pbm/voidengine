@@ -12,6 +12,7 @@ set(VEWP_SRC
     document/htmlelementnode.cc
     document/physicalfragment.cc
     document/style.cc
+    document/elements/bodyelement.cc
 
     html/htmlparser.cc
     html/htmltoken.cc

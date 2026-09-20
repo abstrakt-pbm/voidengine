@@ -3,13 +3,13 @@
 #include "document/containernode.h"
 #include "document/div.h"
 #include "document/domnode.h"
+#include "document/elements/bodyelement.h"
 #include "document/htmlelementnode.h"
 #include "document/imageelement.h"
 #include "document/style.h"
 #include "document/textelement.h"
 #include "htmltoken.h"
 
-#include <iostream>
 #include <memory>
 
 namespace ve {
@@ -20,8 +20,8 @@ namespace {
 std::unique_ptr<webplatform::Style> CreateDefaultDivStyle() {
   auto style = std::make_unique<ve::webplatform::Style>(
       0.0f, 0.0f, webplatform::Colour(webplatform::Colour::ColourName::WHITE));
-  style->width_mode_ = webplatform::Style::WidthMode::AUTO;
-  style->height_mode_ = webplatform::Style::HeightMode::AUTO;
+  style->width_ = webplatform::Width(webplatform::Width::WidthMode::AUTO);
+  style->height_ = webplatform::Height(webplatform::Height::HeightMode::AUTO);
   style->overflow_ = webplatform::Style::Overflow::VISIBLE;
   return style;
 }
@@ -29,7 +29,8 @@ std::unique_ptr<webplatform::Style> CreateDefaultDivStyle() {
 } // namespace
 
 HTMLTreeBuilder::HTMLTreeBuilder()
-    : tree_root_(std::make_unique<webplatform::HtmlElementNode>()) {
+    : tree_root_(std::make_unique<webplatform::HtmlElementNode>(
+          CreateDefaultDivStyle())) {
   // tag <html> always tree root
   open_elements_.push(tree_root_.get());
 }
@@ -40,11 +41,14 @@ void HTMLTreeBuilder::ProcessToken(const HTMLToken &html_token) {
   //
   if (html_token.Type() == HTMLToken::TokenType::kStartTag) {
     std::unique_ptr<webplatform::DomNode> new_element;
-    //
-    // Пока поддерживаем только <div>.
-    //
     if (html_token.Tag() == HTMLTag::kDiv) {
       new_element = std::make_unique<webplatform::Div>(CreateDefaultDivStyle());
+    } else if (html_token.Tag() == HTMLTag::kHTML) {
+      new_element = std::make_unique<webplatform::HtmlElementNode>(
+          CreateDefaultDivStyle());
+    } else if (html_token.Tag() == HTMLTag::kBody) {
+      new_element = std::make_unique<webplatform::BodyElementNode>(
+          CreateDefaultDivStyle());
     } else if (html_token.Tag() == HTMLTag::kImg) {
       std::string img_source = html_token.GetAttributeValue("src");
       std::string width_str = html_token.GetAttributeValue("width");
