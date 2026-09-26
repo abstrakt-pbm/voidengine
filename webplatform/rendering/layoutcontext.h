@@ -23,6 +23,7 @@ public:
 
 private:
   float content_box_top_ = 0.f;
+  float prev_child_margin_bot_ = 0.f;
   float cursor_x_ = 0.f;
   float cursor_y_ = 0.f;
 };

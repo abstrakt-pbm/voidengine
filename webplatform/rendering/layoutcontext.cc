@@ -1,4 +1,5 @@
 #include "rendering/layoutcontext.h"
+#include <algorithm>
 #include <memory>
 
 namespace ve::webplatform {
@@ -30,6 +31,7 @@ void BlockLayoutAlgo::LayoutChild(const Style *child_style,
   float margin_left = 0.0f;
   float margin_top = 0.0f;
   float margin_bottom = 0.0f;
+
   if (child_style) {
     const Margin &child_margin = child_style->GetMargin();
     margin_left = child_margin.margin_left;
@@ -37,11 +39,17 @@ void BlockLayoutAlgo::LayoutChild(const Style *child_style,
     margin_bottom = child_margin.margin_bottom;
   }
 
-  child_fragment.x_ = cursor_x_ + margin_left;
-  child_fragment.y_ = cursor_y_ + margin_top;
+  const float collapsed_margin =
+      std::max({0.f, margin_top, prev_child_margin_bot_}) +
+      std::min({0.f, margin_top, prev_child_margin_bot_});
 
+  child_fragment.x_ = cursor_x_ + margin_left;
+  child_fragment.y_ = cursor_y_ - prev_child_margin_bot_ + collapsed_margin;
+
+  prev_child_margin_bot_ = margin_bottom;
   cursor_y_ = child_fragment.y_ + child_fragment.height_ + margin_bottom;
 }
+
 BlockLayoutAlgo::BlockLayoutAlgo(const Style &style) {
   const Padding &padding = style.GetPadding();
   cursor_x_ = padding.paddig_left + style.border_width;
